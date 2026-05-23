@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -64,18 +65,21 @@ fun PlazaHomeBanner(
                 ),
             ),
     ) {
-        // Decorative circles (Plaza signature)
+        // Decorative circles (Plaza signature). Use offset (signed) instead of
+        // padding (which throws on negative values). The parent Box clips to
+        // the banner shape, so the offset circles peek visibly from each
+        // corner without bleeding outside the card silhouette.
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = (-30).dp, end = (-30).dp)
+                .offset(x = 30.dp, y = (-30).dp)
                 .size(120.dp)
                 .background(Color.White.copy(alpha = 0.10f), CircleShape),
         )
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(bottom = (-20).dp, end = 40.dp)
+                .offset(x = (-40).dp, y = 20.dp)
                 .size(70.dp)
                 .background(Color.White.copy(alpha = 0.12f), CircleShape),
         )
