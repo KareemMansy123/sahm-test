@@ -264,11 +264,10 @@ fun CheckoutScreen(
                     }
                 }
             }
-            item {
-                when (state.paymentMethod) {
-                    PaymentMethod.CASH -> CashTenderCard(store)
-                    PaymentMethod.CARD -> CardTenderCard()
-                }
+            // Card-tap simulator only — cash needs no extra UI; the bottom
+            // bar's Confirm button is enough for a face-to-face cash sale.
+            if (state.paymentMethod == PaymentMethod.CARD) {
+                item { CardTenderCard() }
             }
             item {
                 CheckoutSectionCard(icon = Icons.Rounded.Notes, title = "Order Notes") {
@@ -359,115 +358,6 @@ private fun PaymentMethodOption(
 }
 
 @Composable
-private fun CashTenderCard(store: CheckoutStore) {
-    val state by store.state.collectAsState()
-    CheckoutSectionCard(icon = Icons.Rounded.Calculate, title = "Cash Tendered") {
-        Column {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(SahmSpacing.sm),
-            ) {
-                val total = state.totals.grandTotal.amount
-                listOf(
-                    "Exact" to total,
-                    "+50" to 5000L,
-                    "+100" to 10000L,
-                    "+200" to 20000L,
-                ).forEach { (label, amount) ->
-                    Surface(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(40.dp)
-                            .clickable {
-                                val newTendered = if (label == "Exact") amount
-                                                  else state.tendered.amount + amount
-                                store.dispatch(
-                                    CheckoutIntent.SetTendered(
-                                        Money(newTendered, state.tendered.currency),
-                                    ),
-                                )
-                            },
-                        shape = RoundedCornerShape(20.dp),
-                        color = Neutral10,
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                label,
-                                style = MaterialTheme.typography.labelMedium.copy(
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 12.sp,
-                                ),
-                                color = Neutral80,
-                            )
-                        }
-                    }
-                }
-            }
-            Spacer(Modifier.height(SahmSpacing.md))
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(SahmRadius.md),
-                color = BrandPrimaryContainer,
-            ) {
-                Column(modifier = Modifier.padding(SahmSpacing.lg)) {
-                    Text(
-                        "Tendered",
-                        style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp),
-                        color = Neutral80,
-                    )
-                    Text(
-                        state.tendered.toDisplayString(),
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 28.sp,
-                        ),
-                        color = BrandPrimary,
-                    )
-                }
-            }
-            Spacer(Modifier.height(SahmSpacing.md))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Neutral10, RoundedCornerShape(SahmRadius.sm))
-                    .padding(SahmSpacing.md),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    "Change",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
-                    color = Neutral80,
-                )
-                Text(
-                    state.change.toDisplayString(),
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                    ),
-                    color = if (state.tendered.amount >= state.totals.grandTotal.amount)
-                        AccentTeal else SahmError,
-                )
-            }
-            Spacer(Modifier.height(SahmSpacing.lg))
-            Keypad(
-                onDigit = { d ->
-                    val newAmount = state.tendered.amount * 10 + d
-                    store.dispatch(
-                        CheckoutIntent.SetTendered(Money(newAmount, state.tendered.currency)),
-                    )
-                },
-                onBackspace = {
-                    val newAmount = state.tendered.amount / 10
-                    store.dispatch(
-                        CheckoutIntent.SetTendered(Money(newAmount, state.tendered.currency)),
-                    )
-                },
-            )
-        }
-    }
-}
-
-@Composable
 private fun CardTenderCard() {
     val infinite = rememberInfiniteTransition(label = "card-pulse")
     val scale by infinite.animateFloat(
@@ -534,63 +424,3 @@ private fun CardTenderCard() {
     }
 }
 
-@Composable
-private fun Keypad(onDigit: (Int) -> Unit, onBackspace: () -> Unit) {
-    val rows = listOf(
-        listOf("1", "2", "3"),
-        listOf("4", "5", "6"),
-        listOf("7", "8", "9"),
-        listOf("00", "0", "DEL"),
-    )
-    Column(verticalArrangement = Arrangement.spacedBy(SahmSpacing.sm)) {
-        rows.forEach { row ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(SahmSpacing.sm),
-            ) {
-                row.forEach { key ->
-                    KeypadKey(
-                        label = key,
-                        onClick = {
-                            when (key) {
-                                "DEL" -> onBackspace()
-                                "00" -> { onDigit(0); onDigit(0) }
-                                else -> onDigit(key.toInt())
-                            }
-                        },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun KeypadKey(label: String, onClick: () -> Unit, modifier: Modifier) {
-    Surface(
-        modifier = modifier.height(52.dp).clickable(onClick = onClick),
-        shape = RoundedCornerShape(SahmRadius.md),
-        color = Neutral10,
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            if (label == "DEL") {
-                Icon(
-                    Icons.Rounded.Backspace,
-                    contentDescription = "Backspace",
-                    tint = Neutral80,
-                    modifier = Modifier.size(20.dp),
-                )
-            } else {
-                Text(
-                    label,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 18.sp,
-                    ),
-                    color = Neutral95,
-                )
-            }
-        }
-    }
-}

@@ -11,30 +11,24 @@ data class CheckoutState(
     val items: List<CartItem> = emptyList(),
     val totals: OrderTotals = OrderTotals.EMPTY,
     val paymentMethod: PaymentMethod = PaymentMethod.CASH,
-    val tendered: Money = Money.ZERO_EGP,
     val isProcessing: Boolean = false,
     val completedOrder: Order? = null,
     val completedItems: List<OrderItem> = emptyList(),
     val printedReceiptText: String? = null,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
 ) {
-    val change: Money get() {
-        return if (paymentMethod == PaymentMethod.CASH && tendered.amount >= totals.grandTotal.amount) {
-            tendered - totals.grandTotal
-        } else {
-            Money.ZERO_EGP
-        }
-    }
-    val canConfirm: Boolean get() = when (paymentMethod) {
-        PaymentMethod.CASH -> tendered.amount >= totals.grandTotal.amount && totals.grandTotal.amount > 0
-        PaymentMethod.CARD -> totals.grandTotal.amount > 0
-    }
+    /**
+     * `canConfirm` is true whenever there is something to charge. We no
+     * longer require the cashier to enter a "tendered" amount — for a
+     * face-to-face restaurant POS, the cashier just confirms the sale
+     * after collecting cash or running a card.
+     */
+    val canConfirm: Boolean get() = totals.grandTotal.amount > 0
 }
 
 sealed interface CheckoutIntent {
     data class Initialize(val items: List<CartItem>, val totals: OrderTotals) : CheckoutIntent
     data class SetPaymentMethod(val method: PaymentMethod) : CheckoutIntent
-    data class SetTendered(val amount: Money) : CheckoutIntent
     data object ConfirmPayment : CheckoutIntent
     data object PrintReceipt : CheckoutIntent
     data object Done : CheckoutIntent

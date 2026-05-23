@@ -12,7 +12,7 @@ class CheckoutStore(
     private val checkoutOrder: CheckoutOrder,
     private val printReceipt: PrintReceipt,
     private val orderRepository: OrderRepository,
-    private val renderReceiptText: (Order, List<OrderItem>) -> String
+    private val renderReceiptText: (Order, List<OrderItem>) -> String,
 ) : BaseStore<CheckoutState, CheckoutIntent, CheckoutEffect>(CheckoutState()) {
 
     override suspend fun handle(intent: CheckoutIntent) {
@@ -23,9 +23,6 @@ class CheckoutStore(
             is CheckoutIntent.SetPaymentMethod -> updateState {
                 it.copy(paymentMethod = intent.method)
             }
-            is CheckoutIntent.SetTendered -> updateState {
-                it.copy(tendered = intent.amount)
-            }
             CheckoutIntent.ConfirmPayment -> processPayment()
             CheckoutIntent.PrintReceipt -> printCompletedReceipt()
             CheckoutIntent.Done -> emitEffect(CheckoutEffect.NavigateBack)
@@ -35,27 +32,28 @@ class CheckoutStore(
     private suspend fun processPayment() {
         val current = state.value
         if (!current.canConfirm) {
-            emitEffect(CheckoutEffect.ShowError("Insufficient tender"))
+            emitEffect(CheckoutEffect.ShowError("No items to charge"))
             return
         }
         updateState { it.copy(isProcessing = true, errorMessage = null) }
         try {
+            // Tendered defaults to the grand total — no separate cashier
+            // input for cash; the receipt shows zero change.
             val order = checkoutOrder(
                 items = current.items,
                 totals = current.totals,
                 paymentMethod = current.paymentMethod,
-                tendered = current.tendered
+                tendered = current.totals.grandTotal,
             )
             val items = orderRepository.getItems(order.id)
             updateState {
                 it.copy(
                     isProcessing = false,
                     completedOrder = order,
-                    completedItems = items
+                    completedItems = items,
                 )
             }
             emitEffect(CheckoutEffect.PaymentSucceeded)
-            // Auto-print on success.
             printCompletedReceipt()
         } catch (t: Throwable) {
             updateState { it.copy(isProcessing = false, errorMessage = t.message) }
@@ -72,7 +70,8 @@ class CheckoutStore(
                 updateState { it.copy(printedReceiptText = text) }
                 emitEffect(CheckoutEffect.ReceiptPrinted(text))
             }
-            is PrintResult.Failure -> emitEffect(CheckoutEffect.ShowError("Print failed: ${result.reason}"))
+            is PrintResult.Failure ->
+                emitEffect(CheckoutEffect.ShowError("Print failed: ${result.reason}"))
         }
     }
 }
