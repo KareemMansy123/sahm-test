@@ -2,29 +2,41 @@ package com.sahmfood.pos.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.sahmfood.pos.domain.entities.OrderTotals
-import com.sahmfood.pos.ui.theme.SahmDimens
+import com.sahmfood.pos.ui.theme.BrandPrimary
+import com.sahmfood.pos.ui.theme.BrandPrimaryDark
+import com.sahmfood.pos.ui.theme.BrandPrimaryLight
+import com.sahmfood.pos.ui.theme.Elevation3
+import com.sahmfood.pos.ui.theme.Neutral40
+import com.sahmfood.pos.ui.theme.Neutral60
+import com.sahmfood.pos.ui.theme.Neutral80
+import com.sahmfood.pos.ui.theme.Neutral95
 import com.sahmfood.pos.ui.theme.SahmDurations
 import com.sahmfood.pos.ui.theme.SahmRadius
 import com.sahmfood.pos.ui.theme.SahmSpacing
@@ -34,97 +46,99 @@ fun OrderTotalCard(
     totals: OrderTotals,
     onCharge: () -> Unit,
     chargeEnabled: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    chargeLabel: String = "Proceed to Checkout",
 ) {
-    // Wow #1 — odometer roll-up on the grand total.
     val animatedTotal by animateFloatAsState(
         targetValue = totals.grandTotal.amount / 100f,
         animationSpec = tween(durationMillis = SahmDurations.long),
         label = "grand-total"
     )
 
-    // Subtle scale bounce when totals change (proxy on grand total amount).
-    val pulse by animateFloatAsState(
-        targetValue = 1f,
-        animationSpec = tween(durationMillis = SahmDurations.medium),
-        label = "pulse"
-    )
-
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .graphicsLayer { scaleX = pulse; scaleY = pulse },
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(SahmRadius.lg),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+        colors = CardDefaults.cardColors(containerColor = Elevation3),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
-            modifier = Modifier.padding(SahmSpacing.lg),
+            modifier = Modifier.padding(SahmSpacing.xl),
             verticalArrangement = Arrangement.spacedBy(SahmSpacing.sm)
         ) {
-            LabelRow("Subtotal", totals.subtotal.toDisplayString(), emphasised = false)
-            LabelRow("Tax (14%)", totals.taxAmount.toDisplayString(), emphasised = false)
+            LabelRow("Subtotal", totals.subtotal.toDisplayString())
+            LabelRow("Tax (14%)", totals.taxAmount.toDisplayString())
             if (totals.discount.amount > 0) {
-                LabelRow(
-                    "Discount",
-                    "- " + totals.discount.toDisplayString(),
-                    emphasised = false,
-                    color = MaterialTheme.colorScheme.tertiary
-                )
+                LabelRow("Discount", "- " + totals.discount.toDisplayString(),
+                    color = MaterialTheme.colorScheme.tertiary)
             }
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            HorizontalDivider(color = Neutral40, thickness = 0.5.dp)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    "TOTAL",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
+                Text("Total", style = MaterialTheme.typography.titleLarge, color = Neutral95)
                 Text(
                     text = formatEgp(animatedTotal),
-                    style = MaterialTheme.typography.displaySmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = BrandPrimary
                 )
             }
-            Button(
+            Spacer(Modifier.height(SahmSpacing.sm))
+            PrimaryGradientButton(
+                text = chargeLabel,
                 onClick = onCharge,
                 enabled = chargeEnabled,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(SahmDimens.primaryButtonHeight),
-                shape = RoundedCornerShape(SahmRadius.md),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            ) {
-                Text("Charge", style = MaterialTheme.typography.titleMedium)
+                trailingIcon = Icons.Rounded.ChevronRight
+            )
+        }
+    }
+}
+
+@Composable
+fun PrimaryGradientButton(
+    text: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    leadingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    modifier: Modifier = Modifier,
+) {
+    val brush = if (enabled) {
+        Brush.horizontalGradient(listOf(BrandPrimaryLight, BrandPrimaryDark))
+    } else {
+        Brush.horizontalGradient(listOf(Neutral40, Neutral40))
+    }
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .background(brush, RoundedCornerShape(SahmRadius.md))
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (leadingIcon != null) {
+                Icon(leadingIcon, contentDescription = null, tint = Color.White,
+                    modifier = Modifier.padding(end = SahmSpacing.sm))
+            }
+            Text(text, style = MaterialTheme.typography.titleMedium, color = Color.White)
+            if (trailingIcon != null) {
+                Icon(trailingIcon, contentDescription = null, tint = Color.White,
+                    modifier = Modifier.padding(start = SahmSpacing.sm))
             }
         }
     }
 }
 
 @Composable
-private fun LabelRow(
-    label: String,
-    value: String,
-    emphasised: Boolean,
-    color: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurfaceVariant
-) {
+private fun LabelRow(label: String, value: String, color: Color = Neutral80) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(label, style = MaterialTheme.typography.bodyLarge, color = color)
-        Text(
-            value,
-            style = if (emphasised) MaterialTheme.typography.titleLarge else MaterialTheme.typography.bodyLarge,
-            color = if (emphasised) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-        )
+        Text(label, style = MaterialTheme.typography.bodyLarge, color = Neutral60)
+        Text(value, style = MaterialTheme.typography.bodyLarge, color = color)
     }
 }
 

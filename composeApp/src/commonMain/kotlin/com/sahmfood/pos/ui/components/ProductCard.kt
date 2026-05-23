@@ -1,5 +1,6 @@
 package com.sahmfood.pos.ui.components
 
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
@@ -11,17 +12,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddShoppingCart
-import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -32,108 +32,91 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sahmfood.pos.domain.entities.Product
-import com.sahmfood.pos.ui.theme.SahmDimens
+import com.sahmfood.pos.ui.theme.BrandPrimary
+import com.sahmfood.pos.ui.theme.Elevation1
+import com.sahmfood.pos.ui.theme.Neutral60
+import com.sahmfood.pos.ui.theme.Neutral95
 import com.sahmfood.pos.ui.theme.SahmRadius
 import com.sahmfood.pos.ui.theme.SahmSpacing
+import com.sahmfood.pos.ui.theme.categoryGradient
 
 @Composable
 fun ProductCard(
     product: Product,
+    onCardTap: () -> Unit,
     onAdd: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val interaction = remember { MutableInteractionSource() }
     val isPressed by interaction.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1f,
-        animationSpec = spring(stiffness = 600f),
+        targetValue = if (isPressed) 0.96f else 1f,
+        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMediumLow),
         label = "press-scale"
     )
+
     Card(
         modifier = modifier
             .fillMaxWidth()
             .graphicsLayer { scaleX = scale; scaleY = scale }
-            .clickable(interactionSource = interaction, indication = null) { onAdd() },
-        shape = RoundedCornerShape(SahmRadius.md),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            .clickable(interactionSource = interaction, indication = null) { onCardTap() },
+        shape = RoundedCornerShape(SahmRadius.lg),
+        colors = CardDefaults.cardColors(containerColor = Elevation1),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp, pressedElevation = 6.dp)
     ) {
         Column {
-            // Image placeholder — uses a gradient block + emoji as a stand-in
-            // for real photography. Wired this way so the build runs without
-            // bundled image assets.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(SahmDimens.productImageHeight)
-                    .clip(RoundedCornerShape(topStart = SahmRadius.md, topEnd = SahmRadius.md))
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primaryContainer,
-                                MaterialTheme.colorScheme.surfaceVariant
-                            )
-                        )
-                    ),
-                contentAlignment = Alignment.Center
+                    .aspectRatio(4f / 3f)
+                    .clip(RoundedCornerShape(topStart = SahmRadius.lg, topEnd = SahmRadius.lg))
+                    .background(brush = Brush.linearGradient(categoryGradient(product.category)))
             ) {
                 Icon(
-                    imageVector = Icons.Default.Restaurant,
+                    imageVector = categoryIcon(product.category),
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.padding(SahmSpacing.lg)
+                    tint = Color.White.copy(alpha = 0.7f),
+                    modifier = Modifier.align(Alignment.Center).size(44.dp)
                 )
-                // Category badge top-left
                 Surface(
                     modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(SahmSpacing.sm),
-                    shape = RoundedCornerShape(SahmRadius.xl),
-                    color = MaterialTheme.colorScheme.primary
+                        .align(Alignment.BottomEnd)
+                        .padding(10.dp)
+                        .size(36.dp)
+                        .shadow(elevation = 4.dp, shape = CircleShape,
+                            ambientColor = BrandPrimary, spotColor = BrandPrimary)
+                        .clickable(onClick = onAdd),
+                    shape = CircleShape,
+                    color = BrandPrimary
                 ) {
-                    Text(
-                        text = product.category,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.padding(horizontal = SahmSpacing.sm, vertical = 2.dp)
-                    )
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            Icons.Rounded.Add,
+                            contentDescription = "Add ${product.name}",
+                            tint = Color.White,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(SahmSpacing.lg),
-                verticalArrangement = Arrangement.spacedBy(SahmSpacing.xs)
+                modifier = Modifier.fillMaxWidth().padding(SahmSpacing.md),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                Text(
-                    text = product.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = product.price.toDisplayString(),
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Spacer(Modifier.height(SahmSpacing.xs))
-                FilledTonalButton(
-                    onClick = onAdd,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(SahmDimens.minTouchTarget),
-                    shape = RoundedCornerShape(SahmRadius.sm)
-                ) {
-                    Icon(Icons.Default.AddShoppingCart, contentDescription = null)
-                    Spacer(Modifier.padding(horizontal = SahmSpacing.xs))
-                    Text("Add", style = MaterialTheme.typography.labelLarge)
-                }
+                Text(product.category, style = MaterialTheme.typography.labelSmall,
+                    color = Neutral60, maxLines = 1)
+                Text(product.name, style = MaterialTheme.typography.titleMedium,
+                    color = Neutral95, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Spacer(Modifier.height(2.dp))
+                Text(product.price.toDisplayString(),
+                    style = MaterialTheme.typography.titleLarge, color = BrandPrimary)
             }
         }
     }

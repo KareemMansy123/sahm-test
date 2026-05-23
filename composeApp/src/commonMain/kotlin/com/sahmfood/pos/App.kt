@@ -1,8 +1,11 @@
 package com.sahmfood.pos
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -10,7 +13,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import com.sahmfood.pos.data.seed.CatalogSeed
 import com.sahmfood.pos.data.sync.SyncWorker
@@ -21,16 +23,17 @@ import com.sahmfood.pos.presentation.checkout.CheckoutIntent
 import com.sahmfood.pos.presentation.checkout.CheckoutStore
 import com.sahmfood.pos.presentation.history.HistoryEffect
 import com.sahmfood.pos.presentation.history.HistoryStore
+import com.sahmfood.pos.ui.screens.CartScreen
 import com.sahmfood.pos.ui.screens.CatalogScreen
 import com.sahmfood.pos.ui.screens.CheckoutScreen
 import com.sahmfood.pos.ui.screens.OrderHistoryScreen
 import com.sahmfood.pos.ui.screens.ReceiptScreen
 import com.sahmfood.pos.ui.theme.SahmTheme
-import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 sealed class Screen {
     data object Catalog : Screen()
+    data object Cart : Screen()
     data object Checkout : Screen()
     data object Receipt : Screen()
     data object History : Screen()
@@ -44,9 +47,23 @@ fun App() {
         val historyStore: HistoryStore = koinInject()
         val catalogSeed: CatalogSeed = koinInject()
         val syncWorker: SyncWorker = koinInject()
-        val scope = rememberCoroutineScope()
 
         var screen by remember { mutableStateOf<Screen>(Screen.Catalog) }
+        var screenIndex by remember { mutableStateOf(0) }
+
+        // Map screens to navigation indices so transitions know which direction to slide.
+        fun indexOf(s: Screen): Int = when (s) {
+            Screen.Catalog -> 0
+            Screen.Cart -> 1
+            Screen.Checkout -> 2
+            Screen.Receipt -> 3
+            Screen.History -> 4
+        }
+
+        fun goTo(s: Screen) {
+            screenIndex = indexOf(s)
+            screen = s
+        }
 
         LaunchedEffect(Unit) {
             catalogSeed.seedIfEmpty()
@@ -59,19 +76,16 @@ fun App() {
                 when (eff) {
                     is CatalogEffect.NavigateToCheckout -> {
                         checkoutStore.dispatch(CheckoutIntent.Initialize(eff.cart, eff.totals))
-                        screen = Screen.Checkout
+                        goTo(Screen.Checkout)
                     }
                     else -> Unit
                 }
             }
         }
 
-        // Surface any history-store errors via println; production would route to a Snackbar host.
         LaunchedEffect(historyStore) {
             historyStore.effects.collect { eff ->
-                if (eff is HistoryEffect.ShowError) {
-                    println("[history] ${eff.message}")
-                }
+                if (eff is HistoryEffect.ShowError) println("[history] ${eff.message}")
             }
         }
 
@@ -85,29 +99,41 @@ fun App() {
 
         AnimatedContent(
             targetState = screen,
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
+            transitionSpec = {
+                val from = indexOf(initialState)
+                val to = indexOf(targetState)
+                val direction = if (to >= from) 1 else -1
+                (slideInHorizontally(animationSpec = tween(250)) { it * direction } + fadeIn()) togetherWith
+                    (slideOutHorizontally(animationSpec = tween(250)) { -it * direction / 3 } + fadeOut())
+            },
             label = "screen-transition"
         ) { current ->
             when (current) {
                 Screen.Catalog -> CatalogScreen(
                     store = catalogStore,
-                    onOpenHistory = { screen = Screen.History }
+                    onOpenHistory = { goTo(Screen.History) },
+                    onOpenCart = { goTo(Screen.Cart) }
+                )
+                Screen.Cart -> CartScreen(
+                    store = catalogStore,
+                    onBack = { goTo(Screen.Catalog) },
+                    onCheckout = { catalogStore.dispatch(CatalogIntent.Checkout) }
                 )
                 Screen.Checkout -> CheckoutScreen(
                     store = checkoutStore,
-                    onBack = { screen = Screen.Catalog },
-                    onPaymentComplete = { screen = Screen.Receipt }
+                    onBack = { goTo(Screen.Cart) },
+                    onPaymentComplete = { goTo(Screen.Receipt) }
                 )
                 Screen.Receipt -> ReceiptScreen(
                     store = checkoutStore,
                     onNewOrder = {
                         catalogStore.dispatch(CatalogIntent.ClearCart)
-                        screen = Screen.Catalog
+                        goTo(Screen.Catalog)
                     }
                 )
                 Screen.History -> OrderHistoryScreen(
                     store = historyStore,
-                    onBack = { screen = Screen.Catalog }
+                    onBack = { goTo(Screen.Catalog) }
                 )
             }
         }

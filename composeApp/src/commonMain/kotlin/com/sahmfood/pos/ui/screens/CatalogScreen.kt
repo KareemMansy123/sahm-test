@@ -1,9 +1,14 @@
 package com.sahmfood.pos.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -11,41 +16,29 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.ShoppingBag
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,187 +46,193 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.sahmfood.pos.domain.entities.CartItem
 import com.sahmfood.pos.domain.entities.Product
 import com.sahmfood.pos.presentation.catalog.CatalogIntent
-import com.sahmfood.pos.presentation.catalog.CatalogState
 import com.sahmfood.pos.presentation.catalog.CatalogStore
-import com.sahmfood.pos.ui.components.CartLineItem
-import com.sahmfood.pos.ui.components.CategoryChipRow
-import com.sahmfood.pos.ui.components.EmptyCartState
-import com.sahmfood.pos.ui.components.OrderTotalCard
+import com.sahmfood.pos.ui.components.CategoryStrip
+import com.sahmfood.pos.ui.components.FloatingSearchBar
+import com.sahmfood.pos.ui.components.HeroHeader
 import com.sahmfood.pos.ui.components.ProductCard
-import com.sahmfood.pos.ui.theme.SahmDimens
+import com.sahmfood.pos.ui.components.ProductDetailSheet
+import com.sahmfood.pos.ui.theme.BrandPrimary
+import com.sahmfood.pos.ui.theme.Neutral5
 import com.sahmfood.pos.ui.theme.SahmSpacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CatalogScreen(
     store: CatalogStore,
-    onOpenHistory: () -> Unit
+    onOpenHistory: () -> Unit,
+    onOpenCart: () -> Unit
 ) {
     val state by store.state.collectAsState()
-    var showCartSheet by remember { mutableStateOf(false) }
+    var selectedProduct by remember { mutableStateOf<Product?>(null) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Sahm Food", style = MaterialTheme.typography.titleLarge) },
-                actions = {
-                    IconButton(onClick = onOpenHistory) {
-                        Icon(Icons.Default.History, contentDescription = "Order history")
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Neutral5)
+    ) {
+        val isTablet = maxWidth >= 600.dp
+        val columns = when {
+            maxWidth >= 840.dp -> 4
+            maxWidth >= 600.dp -> 3
+            else -> 2
+        }
+
+        // Hero header
+        HeroHeader(isTablet = isTablet)
+
+        // Top-right corner action icons (history, cart)
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = SahmSpacing.lg, end = SahmSpacing.lg),
+            horizontalArrangement = Arrangement.spacedBy(SahmSpacing.sm)
+        ) {
+            HeaderActionButton(
+                icon = Icons.Rounded.History,
+                contentDescription = "Order history",
+                onClick = onOpenHistory
             )
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
-        BoxWithConstraints(modifier = Modifier.padding(padding).fillMaxSize()) {
-            val isExpanded = maxWidth >= 840.dp
-            if (isExpanded) {
-                Row(modifier = Modifier.fillMaxSize()) {
-                    CatalogLeftPane(
-                        state = state,
-                        onIntent = store::dispatch,
-                        modifier = Modifier.weight(0.6f).fillMaxHeight()
-                    )
-                    Surface(
-                        modifier = Modifier.weight(0.4f).fillMaxHeight(),
-                        tonalElevation = 2.dp,
-                        color = MaterialTheme.colorScheme.surface
-                    ) {
-                        CartPane(state = state, onIntent = store::dispatch)
-                    }
+            CartHeaderButton(count = state.cartItemCount, onClick = onOpenCart)
+        }
+
+        // Scrollable content
+        Column(modifier = Modifier.fillMaxSize()) {
+            Spacer(Modifier.height(if (isTablet) 154.dp else 134.dp))
+            // Floating search bar — overlaps the header bottom
+            FloatingSearchBar(
+                value = state.searchQuery,
+                onValueChange = { store.dispatch(CatalogIntent.SetSearchQuery(it)) },
+                modifier = Modifier.padding(horizontal = SahmSpacing.xl)
+            )
+            Spacer(Modifier.height(SahmSpacing.lg))
+            CategoryStrip(
+                categories = state.categories,
+                selected = state.selectedCategory,
+                onSelect = { store.dispatch(CatalogIntent.SelectCategory(it)) }
+            )
+            Spacer(Modifier.height(SahmSpacing.sm))
+
+            if (state.isLoading) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    androidx.compose.material3.CircularProgressIndicator(color = BrandPrimary)
                 }
             } else {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    CatalogLeftPane(
-                        state = state,
-                        onIntent = store::dispatch,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    BadgedBox(
-                        badge = {
-                            if (state.cartItemCount > 0) {
-                                Badge { Text(state.cartItemCount.toString()) }
-                            }
-                        },
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(SahmSpacing.lg)
-                    ) {
-                        FloatingActionButton(
-                            onClick = { showCartSheet = true },
-                            containerColor = MaterialTheme.colorScheme.primary
-                        ) {
-                            Icon(Icons.Default.ShoppingCart, contentDescription = "Open cart")
-                        }
-                    }
-                    if (showCartSheet) {
-                        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
-                        ModalBottomSheet(
-                            onDismissRequest = { showCartSheet = false },
-                            sheetState = sheetState
-                        ) {
-                            CartPane(state = state, onIntent = store::dispatch)
-                        }
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(columns),
+                    contentPadding = PaddingValues(
+                        start = SahmSpacing.lg,
+                        end = SahmSpacing.lg,
+                        bottom = SahmSpacing.xxxl
+                    ),
+                    horizontalArrangement = Arrangement.spacedBy(SahmSpacing.md),
+                    verticalArrangement = Arrangement.spacedBy(SahmSpacing.md),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(items = state.filteredProducts, key = { it.id }) { product ->
+                        ProductCard(
+                            product = product,
+                            onCardTap = { selectedProduct = product },
+                            onAdd = { store.dispatch(CatalogIntent.AddToCart(product)) }
+                        )
                     }
                 }
             }
         }
-    }
-}
 
-@Composable
-private fun CatalogLeftPane(
-    state: CatalogState,
-    onIntent: (CatalogIntent) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(modifier = modifier) {
-        CategoryChipRow(
-            categories = state.categories,
-            selected = state.selectedCategory,
-            onSelect = { onIntent(CatalogIntent.SelectCategory(it)) }
-        )
-        OutlinedTextField(
-            value = state.searchQuery,
-            onValueChange = { onIntent(CatalogIntent.SetSearchQuery(it)) },
-            placeholder = { Text("Search items...") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = SahmSpacing.lg, vertical = SahmSpacing.sm),
-            shape = CircleShape,
-            singleLine = true
-        )
-        if (state.isLoading) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else {
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 200.dp),
-                contentPadding = PaddingValues(SahmSpacing.lg),
-                horizontalArrangement = Arrangement.spacedBy(SahmSpacing.md),
-                verticalArrangement = Arrangement.spacedBy(SahmSpacing.md),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(items = state.filteredProducts, key = { it.id }) { product ->
-                    ProductCard(
-                        product = product,
-                        onAdd = { onIntent(CatalogIntent.AddToCart(product)) }
-                    )
+        // Product detail bottom sheet
+        selectedProduct?.let { product ->
+            ProductDetailSheet(
+                product = product,
+                sheetState = sheetState,
+                onDismiss = { selectedProduct = null },
+                onAdd = { qty ->
+                    repeat(qty) { store.dispatch(CatalogIntent.AddToCart(product)) }
+                    selectedProduct = null
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun CartPane(
-    state: CatalogState,
-    onIntent: (CatalogIntent) -> Unit
-) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        Text(
-            "Current Order",
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(SahmSpacing.lg)
-        )
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        if (state.isCartEmpty) {
-            EmptyCartState(modifier = Modifier.weight(1f))
-        } else {
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                items(items = state.cart, key = { it.product.id }) { item ->
-                    CartLineItem(
-                        item = item,
-                        onIncrement = {
-                            onIntent(CatalogIntent.UpdateQuantity(item.product.id, item.quantity + 1))
-                        },
-                        onDecrement = {
-                            onIntent(CatalogIntent.UpdateQuantity(item.product.id, item.quantity - 1))
-                        },
-                        onRemove = { onIntent(CatalogIntent.RemoveFromCart(item.product.id)) }
-                    )
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                        modifier = Modifier.padding(horizontal = SahmSpacing.lg)
-                    )
-                }
-            }
-        }
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        Column(modifier = Modifier.padding(SahmSpacing.lg)) {
-            OrderTotalCard(
-                totals = state.totals,
-                onCharge = { onIntent(CatalogIntent.Checkout) },
-                chargeEnabled = !state.isCartEmpty
             )
+        }
+    }
+}
+
+@Composable
+private fun HeaderActionButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .size(44.dp)
+            .clickable(onClick = onClick),
+        shape = CircleShape,
+        color = Color.White.copy(alpha = 0.18f)
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                icon,
+                contentDescription = contentDescription,
+                tint = Color.White,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun CartHeaderButton(count: Int, onClick: () -> Unit) {
+    val scale by animateFloatAsState(
+        targetValue = if (count > 0) 1f else 1f,
+        animationSpec = spring(dampingRatio = 0.3f, stiffness = Spring.StiffnessHigh),
+        label = "cart-pulse"
+    )
+    // Trigger a pulse each time count changes by remembering count and animating.
+    var lastCount by remember { mutableStateOf(count) }
+    val pulse by animateFloatAsState(
+        targetValue = if (count != lastCount) 1.25f else 1f,
+        animationSpec = spring(dampingRatio = 0.3f, stiffness = Spring.StiffnessHigh),
+        label = "cart-bounce"
+    )
+    LaunchedEffect(count) {
+        if (count != lastCount) {
+            lastCount = count
+        }
+    }
+    BadgedBox(
+        badge = {
+            AnimatedVisibility(
+                visible = count > 0,
+                enter = scaleIn(spring(dampingRatio = 0.4f)) + fadeIn(),
+                exit = fadeOut()
+            ) {
+                Badge(containerColor = MaterialTheme.colorScheme.error) {
+                    Text(count.toString(), color = Color.White)
+                }
+            }
+        },
+        modifier = Modifier.graphicsLayer { scaleX = pulse; scaleY = pulse }
+    ) {
+        Surface(
+            modifier = Modifier
+                .size(44.dp)
+                .clickable(onClick = onClick),
+            shape = CircleShape,
+            color = Color.White
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    Icons.Rounded.ShoppingBag,
+                    contentDescription = "Open cart",
+                    tint = BrandPrimary,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
         }
     }
 }

@@ -6,67 +6,117 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 
 /**
- * Sahm Food brand palette. Warm saffron-amber primary, deep charcoal
- * surfaces, vivid teal secondary, green tertiary for success states.
- * Values are from the design spec.
+ * Sahm Food brand palette — premium spec. Warm-shifted neutrals (not blue-grey),
+ * deep saffron brand, teal accent for success / non-brand CTAs.
  */
+
+// Brand
+val BrandPrimary = Color(0xFFD4820A)
+val BrandPrimaryDark = Color(0xFFA85E00)
+val BrandPrimaryLight = Color(0xFFF5A832)
+val BrandOnPrimary = Color(0xFFFFFFFF)
+val BrandPrimaryContainer = Color(0xFFFDECC8)
+val BrandOnPrimaryContainer = Color(0xFF3D2000)
+
+// Accent — deep teal for success / secondary CTAs
+val AccentTeal = Color(0xFF007B6E)
+val AccentTealLight = Color(0xFF00A896)
+val AccentOnTeal = Color(0xFFFFFFFF)
+val AccentContainer = Color(0xFFC8F0EB)
+
+// Warm neutrals (overrides M3 grey-blue defaults)
+val Neutral0 = Color(0xFFFFFFFF)
+val Neutral5 = Color(0xFFFBF8F4)
+val Neutral10 = Color(0xFFF5EFE6)
+val Neutral20 = Color(0xFFEDE3D5)
+val Neutral40 = Color(0xFFC4B49A)
+val Neutral60 = Color(0xFF8E7D66)
+val Neutral80 = Color(0xFF4A3F32)
+val Neutral95 = Color(0xFF1C1610)
+
+// Elevation tints (warm)
+val Elevation0 = Color(0xFFF5EFE6)
+val Elevation1 = Color(0xFFFBF4EA)
+val Elevation2 = Color(0xFFFDF7EE)
+val Elevation3 = Color(0xFFFFFFFF)
+
+// Semantic
+val SahmError = Color(0xFFC0392B)
+val SahmErrorContainer = Color(0xFFFDEDEA)
+val SahmWarning = Color(0xFFF39C12)
+val SahmInfo = Color(0xFF2980B9)
+
+// Category placeholder gradients
+val CatBurgers = listOf(Color(0xFFFF6B35), Color(0xFFD4520A))
+val CatPizza = listOf(Color(0xFFC0392B), Color(0xFF8B0000))
+val CatDrinks = listOf(Color(0xFF2980B9), Color(0xFF1A5276))
+val CatDesserts = listOf(Color(0xFF8E44AD), Color(0xFF5B2C6F))
+val CatSides = listOf(Color(0xFF27AE60), Color(0xFF1A7A45))
+val CatDefault = listOf(BrandPrimaryLight, BrandPrimaryDark)
+
+fun categoryGradient(category: String): List<Color> = when (category.lowercase()) {
+    "burgers" -> CatBurgers
+    "pizza" -> CatPizza
+    "drinks" -> CatDrinks
+    "desserts" -> CatDesserts
+    "sides" -> CatSides
+    else -> CatDefault
+}
+
 val SahmLightColors: ColorScheme = lightColorScheme(
-    primary            = Color(0xFFD4820A),
-    onPrimary          = Color(0xFFFFFFFF),
-    primaryContainer   = Color(0xFFFFE0B2),
-    onPrimaryContainer = Color(0xFF4A2800),
-    secondary          = Color(0xFF1A6B7C),
-    onSecondary        = Color(0xFFFFFFFF),
-    secondaryContainer = Color(0xFFB2EBF2),
-    onSecondaryContainer = Color(0xFF002A33),
-    tertiary           = Color(0xFF2E7D32),
-    onTertiary         = Color(0xFFFFFFFF),
-    tertiaryContainer  = Color(0xFFC8E6C9),
-    onTertiaryContainer = Color(0xFF00210B),
-    error              = Color(0xFFB3261E),
-    onError            = Color(0xFFFFFFFF),
-    errorContainer     = Color(0xFFF9DEDC),
-    onErrorContainer   = Color(0xFF410E0B),
-    background         = Color(0xFFFFFBF5),
-    onBackground       = Color(0xFF1C1B1A),
-    surface            = Color(0xFFFFFFFF),
-    onSurface          = Color(0xFF1C1B1A),
-    surfaceVariant     = Color(0xFFF3E6D4),
-    onSurfaceVariant   = Color(0xFF4E4239),
-    outline            = Color(0xFF7F6E62),
-    outlineVariant     = Color(0xFFD4C4B8),
-    scrim              = Color(0xFF000000),
-    inverseSurface     = Color(0xFF312F2E),
-    inverseOnSurface   = Color(0xFFF4F0EF),
-    inversePrimary     = Color(0xFFFFB951),
-    surfaceTint        = Color(0xFFD4820A),
+    primary = BrandPrimary,
+    onPrimary = BrandOnPrimary,
+    primaryContainer = BrandPrimaryContainer,
+    onPrimaryContainer = BrandOnPrimaryContainer,
+    secondary = AccentTeal,
+    onSecondary = AccentOnTeal,
+    secondaryContainer = AccentContainer,
+    onSecondaryContainer = Color(0xFF002A26),
+    tertiary = AccentTeal,
+    onTertiary = AccentOnTeal,
+    tertiaryContainer = AccentContainer,
+    onTertiaryContainer = Color(0xFF002A26),
+    error = SahmError,
+    onError = Color.White,
+    errorContainer = SahmErrorContainer,
+    onErrorContainer = Color(0xFF410E0B),
+    background = Neutral5,
+    onBackground = Neutral95,
+    surface = Elevation1,
+    onSurface = Neutral95,
+    surfaceVariant = Neutral20,
+    onSurfaceVariant = Neutral60,
+    surfaceContainer = Elevation1,
+    surfaceContainerHigh = Elevation2,
+    surfaceContainerHighest = Elevation3,
+    outline = Neutral40,
+    outlineVariant = Color(0xFFE0D3BF),
+    scrim = Color(0xFF000000),
+    inverseSurface = Neutral95,
+    inverseOnSurface = Neutral5,
+    inversePrimary = BrandPrimaryLight,
+    surfaceTint = BrandPrimary,
 )
 
 val SahmDarkColors: ColorScheme = darkColorScheme(
-    primary            = Color(0xFFFFB951),
-    onPrimary          = Color(0xFF4A2800),
-    primaryContainer   = Color(0xFF6B3E00),
-    onPrimaryContainer = Color(0xFFFFE0B2),
-    secondary          = Color(0xFF80CBC4),
-    onSecondary        = Color(0xFF003740),
-    secondaryContainer = Color(0xFF004E5B),
-    onSecondaryContainer = Color(0xFFB2EBF2),
-    tertiary           = Color(0xFFA5D6A7),
-    onTertiary         = Color(0xFF003910),
-    tertiaryContainer  = Color(0xFF1B4D1F),
-    onTertiaryContainer = Color(0xFFC8E6C9),
-    error              = Color(0xFFF2B8B5),
-    onError            = Color(0xFF601410),
-    background         = Color(0xFF141210),
-    onBackground       = Color(0xFFE7E1DA),
-    surface            = Color(0xFF1E1B18),
-    onSurface          = Color(0xFFE7E1DA),
-    surfaceVariant     = Color(0xFF2E2924),
-    onSurfaceVariant   = Color(0xFFD4C4B8),
-    outline            = Color(0xFF9E8E82),
-    outlineVariant     = Color(0xFF4E4239),
-    inverseSurface     = Color(0xFFE7E1DA),
-    inverseOnSurface   = Color(0xFF312F2E),
-    inversePrimary     = Color(0xFFD4820A),
-    surfaceTint        = Color(0xFFFFB951),
+    primary = BrandPrimaryLight,
+    onPrimary = Color(0xFF3D2000),
+    primaryContainer = BrandPrimaryDark,
+    onPrimaryContainer = BrandPrimaryContainer,
+    secondary = AccentTealLight,
+    onSecondary = Color(0xFF003733),
+    secondaryContainer = Color(0xFF004B43),
+    onSecondaryContainer = AccentContainer,
+    tertiary = AccentTealLight,
+    onTertiary = Color(0xFF003733),
+    error = Color(0xFFF2B8B5),
+    background = Color(0xFF141210),
+    onBackground = Color(0xFFE7E1DA),
+    surface = Color(0xFF1E1B18),
+    onSurface = Color(0xFFE7E1DA),
+    surfaceVariant = Color(0xFF2E2924),
+    onSurfaceVariant = Color(0xFFD4C4B8),
+    outline = Color(0xFF9E8E82),
+    outlineVariant = Color(0xFF4E4239),
+    surfaceTint = BrandPrimaryLight,
 )
