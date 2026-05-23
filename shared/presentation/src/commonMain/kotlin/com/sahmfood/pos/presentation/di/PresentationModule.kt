@@ -1,8 +1,10 @@
 package com.sahmfood.pos.presentation.di
 
+import com.sahmfood.pos.presentation.ai.AiChatStore
 import com.sahmfood.pos.presentation.catalog.CatalogStore
 import com.sahmfood.pos.presentation.checkout.CheckoutStore
 import com.sahmfood.pos.presentation.common.renderReceiptText
+import com.sahmfood.pos.presentation.favorites.FavoritesStore
 import com.sahmfood.pos.presentation.history.HistoryStore
 import org.koin.dsl.module
 
@@ -17,4 +19,7 @@ val presentationModule = module {
         )
     }
     factory { HistoryStore(get(), get()) }
+    // Singles: state shared across tabs / re-entry
+    single { FavoritesStore(get(), get(), get()) }
+    single { AiChatStore(get(), get(), get()) }
 }

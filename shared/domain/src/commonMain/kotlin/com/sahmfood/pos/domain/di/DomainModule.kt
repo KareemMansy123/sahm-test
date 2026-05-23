@@ -3,11 +3,14 @@ package com.sahmfood.pos.domain.di
 import com.sahmfood.pos.domain.usecases.AddItemToCart
 import com.sahmfood.pos.domain.usecases.CalculateOrderTotals
 import com.sahmfood.pos.domain.usecases.CheckoutOrder
+import com.sahmfood.pos.domain.usecases.GetFavoriteProducts
 import com.sahmfood.pos.domain.usecases.GetOrderDetails
 import com.sahmfood.pos.domain.usecases.GetOrderHistory
 import com.sahmfood.pos.domain.usecases.GetProductCatalog
+import com.sahmfood.pos.domain.usecases.ObserveFavoriteIds
 import com.sahmfood.pos.domain.usecases.PrintReceipt
 import com.sahmfood.pos.domain.usecases.RemoveItemFromCart
+import com.sahmfood.pos.domain.usecases.ToggleFavorite
 import com.sahmfood.pos.domain.usecases.UpdateItemQuantity
 import org.koin.dsl.module
 
@@ -21,4 +24,7 @@ val domainModule = module {
     factory { GetOrderDetails(get()) }
     factory { CheckoutOrder(get(), get(), get(), get()) }
     factory { PrintReceipt(get(), get(), get()) }
+    factory { ObserveFavoriteIds(get()) }
+    factory { ToggleFavorite(get()) }
+    factory { GetFavoriteProducts(get(), get()) }
 }

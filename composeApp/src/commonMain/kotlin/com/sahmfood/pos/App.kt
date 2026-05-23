@@ -16,29 +16,37 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.sahmfood.pos.data.seed.CatalogSeed
 import com.sahmfood.pos.data.sync.SyncWorker
+import com.sahmfood.pos.domain.entities.Product
+import com.sahmfood.pos.presentation.ai.AiChatStore
 import com.sahmfood.pos.presentation.catalog.CatalogEffect
 import com.sahmfood.pos.presentation.catalog.CatalogIntent
 import com.sahmfood.pos.presentation.catalog.CatalogStore
 import com.sahmfood.pos.presentation.checkout.CheckoutIntent
 import com.sahmfood.pos.presentation.checkout.CheckoutStore
+import com.sahmfood.pos.presentation.favorites.FavoritesStore
 import com.sahmfood.pos.presentation.history.HistoryEffect
 import com.sahmfood.pos.presentation.history.HistoryStore
-import com.sahmfood.pos.ui.screens.CartScreen
-import com.sahmfood.pos.ui.screens.CatalogScreen
+import com.sahmfood.pos.ui.screens.AiChatScreen
 import com.sahmfood.pos.ui.screens.CheckoutScreen
-import com.sahmfood.pos.ui.screens.OrderHistoryScreen
+import com.sahmfood.pos.ui.screens.MainScreen
 import com.sahmfood.pos.ui.screens.OrderTrackingScreen
+import com.sahmfood.pos.ui.screens.ProductDetailScreen
 import com.sahmfood.pos.ui.screens.ReceiptScreen
 import com.sahmfood.pos.ui.theme.SahmTheme
 import org.koin.compose.koinInject
 
-sealed class Screen(val index: Int) {
-    data object Catalog : Screen(0)
-    data object Cart : Screen(1)
-    data object Checkout : Screen(2)
-    data object Receipt : Screen(3)
-    data class OrderTracking(val orderId: String) : Screen(4)
-    data object History : Screen(5)
+/**
+ * Root navigation. Plaza-style: a Main scaffold holds the 5 tabs;
+ * detail / checkout / receipt / tracking / AI chat are pushed routes
+ * that overlay the main scaffold with slide-from-right transitions.
+ */
+sealed class Route(val depth: Int) {
+    data object Main : Route(0)
+    data class ProductDetail(val product: Product) : Route(1)
+    data object Checkout : Route(2)
+    data object Receipt : Route(3)
+    data class Tracking(val orderId: String) : Route(4)
+    data object AiChat : Route(5)
 }
 
 @Composable
@@ -47,25 +55,24 @@ fun App() {
         val catalogStore: CatalogStore = koinInject()
         val checkoutStore: CheckoutStore = koinInject()
         val historyStore: HistoryStore = koinInject()
+        val favoritesStore: FavoritesStore = koinInject()
+        val aiChatStore: AiChatStore = koinInject()
         val catalogSeed: CatalogSeed = koinInject()
         val syncWorker: SyncWorker = koinInject()
 
-        var screen by remember { mutableStateOf<Screen>(Screen.Catalog) }
+        var route by remember { mutableStateOf<Route>(Route.Main) }
 
         LaunchedEffect(Unit) {
             catalogSeed.seedIfEmpty()
             syncWorker.start()
         }
 
-        // Catalog effect: navigate to checkout when user taps Charge.
+        // Catalog → Checkout transition
         LaunchedEffect(catalogStore) {
             catalogStore.effects.collect { eff ->
-                when (eff) {
-                    is CatalogEffect.NavigateToCheckout -> {
-                        checkoutStore.dispatch(CheckoutIntent.Initialize(eff.cart, eff.totals))
-                        screen = Screen.Checkout
-                    }
-                    else -> Unit
+                if (eff is CatalogEffect.NavigateToCheckout) {
+                    checkoutStore.dispatch(CheckoutIntent.Initialize(eff.cart, eff.totals))
+                    route = Route.Checkout
                 }
             }
         }
@@ -81,61 +88,66 @@ fun App() {
                 catalogStore.cancel()
                 checkoutStore.cancel()
                 historyStore.cancel()
+                favoritesStore.cancel()
+                aiChatStore.cancel()
             }
         }
 
         AnimatedContent(
-            targetState = screen,
+            targetState = route,
             transitionSpec = {
-                val direction = if (targetState.index >= initialState.index) 1 else -1
+                val direction = if (targetState.depth >= initialState.depth) 1 else -1
                 (slideInHorizontally(tween(280)) { it * direction } + fadeIn()) togetherWith
                     (slideOutHorizontally(tween(280)) { -it * direction / 3 } + fadeOut())
             },
-            label = "screen-transition",
+            label = "route",
         ) { current ->
             when (current) {
-                Screen.Catalog -> CatalogScreen(
-                    store = catalogStore,
-                    onOpenHistory = { screen = Screen.History },
-                    onOpenCart = { screen = Screen.Cart },
+                Route.Main -> MainScreen(
+                    catalogStore = catalogStore,
+                    favoritesStore = favoritesStore,
+                    historyStore = historyStore,
+                    onOpenProduct = { product -> route = Route.ProductDetail(product) },
+                    onOpenCheckout = { catalogStore.dispatch(CatalogIntent.Checkout) },
+                    onOpenAi = { route = Route.AiChat },
                 )
-                Screen.Cart -> CartScreen(
-                    store = catalogStore,
-                    onBack = { screen = Screen.Catalog },
-                    onCheckout = { catalogStore.dispatch(CatalogIntent.Checkout) },
+                is Route.ProductDetail -> ProductDetailScreen(
+                    product = current.product,
+                    favoritesStore = favoritesStore,
+                    onBack = { route = Route.Main },
+                    onAddToCart = { qty ->
+                        repeat(qty) {
+                            catalogStore.dispatch(CatalogIntent.AddToCart(current.product))
+                        }
+                        route = Route.Main
+                    },
                 )
-                Screen.Checkout -> CheckoutScreen(
+                Route.Checkout -> CheckoutScreen(
                     store = checkoutStore,
-                    onBack = { screen = Screen.Cart },
-                    onPaymentComplete = { screen = Screen.Receipt },
+                    onBack = { route = Route.Main },
+                    onPaymentComplete = { route = Route.Receipt },
                 )
-                Screen.Receipt -> ReceiptScreen(
+                Route.Receipt -> ReceiptScreen(
                     store = checkoutStore,
                     onNewOrder = {
                         catalogStore.dispatch(CatalogIntent.ClearCart)
-                        screen = Screen.Catalog
+                        route = Route.Main
                     },
                     onTrackOrder = {
-                        // The receipt screen is only visible after PaymentSucceeded,
-                        // which guarantees completedOrder is non-null. If it is
-                        // null we silently stay on the receipt rather than open a
-                        // tracker for a junk "—" id.
                         val orderId = checkoutStore.state.value.completedOrder?.id
-                        if (orderId != null) {
-                            screen = Screen.OrderTracking(orderId)
-                        }
+                        if (orderId != null) route = Route.Tracking(orderId)
                     },
                 )
-                is Screen.OrderTracking -> OrderTrackingScreen(
+                is Route.Tracking -> OrderTrackingScreen(
                     orderId = current.orderId,
                     onBack = {
                         catalogStore.dispatch(CatalogIntent.ClearCart)
-                        screen = Screen.Catalog
+                        route = Route.Main
                     },
                 )
-                Screen.History -> OrderHistoryScreen(
-                    store = historyStore,
-                    onBack = { screen = Screen.Catalog },
+                Route.AiChat -> AiChatScreen(
+                    store = aiChatStore,
+                    onBack = { route = Route.Main },
                 )
             }
         }

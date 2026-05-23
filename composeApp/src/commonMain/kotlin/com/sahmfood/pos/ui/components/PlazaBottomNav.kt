@@ -6,26 +6,29 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.LocalDining
-import androidx.compose.material.icons.outlined.Receipt
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.ShoppingBag
-import androidx.compose.material.icons.outlined.Storefront
+import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.rounded.Category
 import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.LocalDining
-import androidx.compose.material.icons.rounded.Receipt
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.ShoppingBag
-import androidx.compose.material.icons.rounded.Storefront
+import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -44,50 +47,54 @@ import com.sahmfood.pos.ui.theme.BrandPrimaryContainer
 import com.sahmfood.pos.ui.theme.Neutral80
 
 /**
- * Plaza-style 5-item bottom navigation. Active item gets a pill highlight
- * (primary @ 15% background, rounded filled icon, primary-colored label).
+ * Plaza-style 5-tab bottom navigation. Active item gets an orange pill
+ * highlight (primary @ 15%) with rounded filled icon + brand-color label.
+ * Inactive items are icon-only on `secondaryTextColor`.
+ *
+ * Cart tab shows a count badge anchored to its icon.
  */
-data class BottomNavItem(
+data class BottomTab(
     val key: String,
     val label: String,
     val iconActive: ImageVector,
     val iconIdle: ImageVector,
-    val badge: Int = 0,
 )
 
-val DefaultBottomNavItems = listOf(
-    BottomNavItem("home", "Home", Icons.Rounded.Home, Icons.Outlined.Home),
-    BottomNavItem("menu", "Menu", Icons.Rounded.LocalDining, Icons.Outlined.LocalDining),
-    BottomNavItem("cart", "Cart", Icons.Rounded.ShoppingBag, Icons.Outlined.ShoppingBag),
-    BottomNavItem("orders", "Orders", Icons.Rounded.Receipt, Icons.Outlined.Receipt),
-    BottomNavItem("store", "Store", Icons.Rounded.Storefront, Icons.Outlined.Storefront),
+val PlazaBottomTabs = listOf(
+    BottomTab("home", "Home", Icons.Rounded.Home, Icons.Outlined.Home),
+    BottomTab("cart", "My Cart", Icons.Rounded.ShoppingCart, Icons.Outlined.ShoppingCart),
+    BottomTab("menu", "Categories", Icons.Rounded.Category, Icons.Outlined.Category),
+    BottomTab("orders", "Orders", Icons.Rounded.ShoppingBag, Icons.Outlined.ShoppingBag),
+    BottomTab("profile", "Profile", Icons.Rounded.Person, Icons.Outlined.Person),
 )
 
 @Composable
 fun PlazaBottomNav(
-    items: List<BottomNavItem>,
     selectedKey: String,
     onSelect: (String) -> Unit,
+    cartCount: Int = 0,
     modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .shadow(
-                elevation = 8.dp,
+                elevation = 12.dp,
                 ambientColor = Color.Black.copy(alpha = 0.06f),
                 spotColor = Color.Black.copy(alpha = 0.10f),
             )
             .background(Color.White)
-            .padding(horizontal = 8.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+            .windowInsetsPadding(WindowInsets.navigationBars)
+            .padding(horizontal = 8.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        items.forEach { item ->
+        PlazaBottomTabs.forEach { tab ->
             BottomNavTile(
-                item = item,
-                selected = selectedKey == item.key,
-                onClick = { onSelect(item.key) },
+                tab = tab,
+                selected = selectedKey == tab.key,
+                badge = if (tab.key == "cart") cartCount else 0,
+                onClick = { onSelect(tab.key) },
                 modifier = Modifier.weight(1f),
             )
         }
@@ -96,8 +103,9 @@ fun PlazaBottomNav(
 
 @Composable
 private fun BottomNavTile(
-    item: BottomNavItem,
+    tab: BottomTab,
     selected: Boolean,
+    badge: Int,
     onClick: () -> Unit,
     modifier: Modifier,
 ) {
@@ -111,51 +119,49 @@ private fun BottomNavTile(
         animationSpec = tween(200),
         label = "nav-fg",
     )
-    Row(
+    Column(
         modifier = modifier
             .clickable(onClick = onClick)
             .background(bg, RoundedCornerShape(12.dp))
-            .padding(horizontal = 14.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
-        Box(contentAlignment = Alignment.Center) {
+        Box(contentAlignment = Alignment.TopEnd) {
             Icon(
-                imageVector = if (selected) item.iconActive else item.iconIdle,
-                contentDescription = item.label,
+                imageVector = if (selected) tab.iconActive else tab.iconIdle,
+                contentDescription = tab.label,
                 tint = contentColor,
-                modifier = Modifier.size(22.dp),
+                modifier = Modifier.size(24.dp),
             )
-            if (item.badge > 0) {
+            if (badge > 0) {
                 Box(
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
                         .padding(start = 12.dp, bottom = 12.dp)
-                        .size(16.dp)
-                        .background(BrandPrimary, CircleShape),
+                        .height(18.dp)
+                        .background(BrandPrimary, CircleShape)
+                        .padding(horizontal = if (badge > 9) 5.dp else 4.dp, vertical = 1.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        item.badge.toString(),
+                        text = if (badge > 99) "99+" else badge.toString(),
                         color = Color.White,
                         style = MaterialTheme.typography.labelSmall.copy(
-                            fontSize = 9.sp,
+                            fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
                         ),
                     )
                 }
             }
         }
-        if (selected) {
-            Spacer(Modifier.width(6.dp))
-            Text(
-                item.label,
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 12.sp,
-                ),
-                color = contentColor,
-            )
-        }
+        Spacer(Modifier.height(4.dp))
+        Text(
+            tab.label,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontSize = 11.sp,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+            ),
+            color = contentColor,
+        )
     }
 }

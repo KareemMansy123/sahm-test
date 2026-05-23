@@ -31,9 +31,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,53 +40,47 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sahmfood.pos.domain.entities.Product
 import com.sahmfood.pos.ui.theme.BrandPrimary
-import com.sahmfood.pos.ui.theme.DiscountColor
 import com.sahmfood.pos.ui.theme.ExpressColor
-import com.sahmfood.pos.ui.theme.Neutral10
 import com.sahmfood.pos.ui.theme.Neutral80
 import com.sahmfood.pos.ui.theme.Neutral95
-import com.sahmfood.pos.ui.theme.OldPriceColor
 import com.sahmfood.pos.ui.theme.PriceColor
 import com.sahmfood.pos.ui.theme.RatingColor
 import com.sahmfood.pos.ui.theme.SahmError
 import com.sahmfood.pos.ui.theme.SahmRadius
-import com.sahmfood.pos.ui.theme.SahmSpacing
 import com.sahmfood.pos.ui.theme.categoryGradient
 import com.sahmfood.pos.ui.theme.plazaCardShadow
 
 /**
  * Plaza-style product card. White surface with subtle shadow, image hero
- * top with overlays (express badge, discount, favorite, floating + add).
+ * top with overlays (express badge, favorite, floating + add).
  *
  * - Card body tap → product detail
  * - Floating + button → direct add to cart
- * - Heart icon → toggle favorite (local state)
+ * - Heart icon → toggle real favorite state
  */
 @Composable
 fun ProductCard(
     product: Product,
+    isFavorite: Boolean,
     onCardTap: () -> Unit,
     onAdd: () -> Unit,
+    onToggleFavorite: () -> Unit,
     modifier: Modifier = Modifier,
     rating: Double = 4.5,
     isExpress: Boolean = true,
-    oldPrice: String? = null,
-    discountPercent: Int? = null,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val isPressed by interaction.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1f,
+        targetValue = if (isPressed) 0.96f else 1f,
         animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMediumLow),
         label = "press-scale",
     )
-    var favorite by remember { mutableStateOf(false) }
 
     Surface(
         modifier = modifier
@@ -107,30 +99,12 @@ fun ProductCard(
                     .clip(RoundedCornerShape(topStart = SahmRadius.md, topEnd = SahmRadius.md))
                     .background(brush = Brush.linearGradient(categoryGradient(product.category))),
             ) {
-                // Hero icon
                 Icon(
                     imageVector = categoryIcon(product.category),
                     contentDescription = null,
-                    tint = Color.White.copy(alpha = 0.85f),
+                    tint = Color.White.copy(alpha = 0.7f),
                     modifier = Modifier.align(Alignment.Center).size(56.dp),
                 )
-
-                // Top-left discount badge
-                discountPercent?.let { dp ->
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(8.dp)
-                            .background(DiscountColor, RoundedCornerShape(SahmRadius.xs))
-                            .padding(horizontal = 6.dp, vertical = 2.dp),
-                    ) {
-                        Text(
-                            "-$dp%",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = Color.White,
-                        )
-                    }
-                }
 
                 // Top-right favorite heart (Plaza signature)
                 Box(
@@ -140,18 +114,18 @@ fun ProductCard(
                         .size(32.dp)
                         .shadow(2.dp, CircleShape)
                         .background(Color.White, CircleShape)
-                        .clickable { favorite = !favorite },
+                        .clickable(onClick = onToggleFavorite),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        if (favorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                        contentDescription = if (favorite) "Remove favorite" else "Add favorite",
-                        tint = if (favorite) SahmError else Neutral80,
+                        if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                        contentDescription = if (isFavorite) "Remove favorite" else "Add favorite",
+                        tint = if (isFavorite) SahmError else Neutral80,
                         modifier = Modifier.size(18.dp),
                     )
                 }
 
-                // Bottom-right floating + button (Plaza signature)
+                // Bottom-right floating + button
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
@@ -175,13 +149,10 @@ fun ProductCard(
                     )
                 }
             }
-
-            // Card body
             Column(
                 modifier = Modifier.fillMaxWidth().padding(10.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                // Express badge
                 if (isExpress) {
                     Row(
                         modifier = Modifier
@@ -209,7 +180,6 @@ fun ProductCard(
                         )
                     }
                 }
-                // Name
                 Text(
                     product.name,
                     style = MaterialTheme.typography.bodySmall.copy(
@@ -221,7 +191,6 @@ fun ProductCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                // Rating row
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Rounded.Star,
@@ -237,17 +206,6 @@ fun ProductCard(
                             fontSize = 12.sp,
                         ),
                         color = Neutral95,
-                    )
-                }
-                // Price column
-                if (oldPrice != null) {
-                    Text(
-                        oldPrice,
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            textDecoration = TextDecoration.LineThrough,
-                            fontSize = 11.sp,
-                        ),
-                        color = OldPriceColor,
                     )
                 }
                 Text(

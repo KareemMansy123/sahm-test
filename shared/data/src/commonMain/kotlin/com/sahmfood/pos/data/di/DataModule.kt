@@ -2,6 +2,7 @@ package com.sahmfood.pos.data.di
 
 import com.sahmfood.pos.data.db.SahmPosDatabase
 import com.sahmfood.pos.data.printer.MockPrinterService
+import com.sahmfood.pos.data.repositories.InMemoryFavoritesRepository
 import com.sahmfood.pos.data.repositories.OrderRepositoryImpl
 import com.sahmfood.pos.data.repositories.ProductRepositoryImpl
 import com.sahmfood.pos.data.repositories.SyncQueueRepositoryImpl
@@ -11,6 +12,7 @@ import com.sahmfood.pos.data.services.SystemAppClock
 import com.sahmfood.pos.data.sync.AlwaysOfflineConnectivityObserver
 import com.sahmfood.pos.data.sync.StubRemoteApiService
 import com.sahmfood.pos.data.sync.SyncWorker
+import com.sahmfood.pos.domain.repositories.FavoritesRepository
 import com.sahmfood.pos.domain.repositories.OrderRepository
 import com.sahmfood.pos.domain.repositories.ProductRepository
 import com.sahmfood.pos.domain.repositories.SyncQueueRepository
@@ -34,6 +36,7 @@ val dataModule: Module = module {
     single<ProductRepository> { ProductRepositoryImpl(get()) }
     single<OrderRepository> { OrderRepositoryImpl(get(), get()) }
     single<SyncQueueRepository> { SyncQueueRepositoryImpl(get()) }
+    single<FavoritesRepository> { InMemoryFavoritesRepository() }
 
     // Printer — exposed under both its concrete and interface type so the UI
     // can subscribe to MockPrinterService.printLog while use cases inject the
