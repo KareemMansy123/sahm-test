@@ -29,6 +29,7 @@ import com.sahmfood.pos.presentation.history.HistoryEffect
 import com.sahmfood.pos.presentation.history.HistoryStore
 import com.sahmfood.pos.presentation.settings.AppSettingsStore
 import com.sahmfood.pos.ui.screens.AiChatScreen
+import com.sahmfood.pos.ui.screens.CategoryProductsScreen
 import com.sahmfood.pos.ui.screens.CheckoutScreen
 import com.sahmfood.pos.ui.screens.FavoritesScreen
 import com.sahmfood.pos.ui.screens.HelpSupportScreen
@@ -45,6 +46,7 @@ import org.koin.compose.koinInject
 sealed class Route(val depth: Int) {
     data object Main : Route(0)
     data class ProductDetail(val product: Product) : Route(1)
+    data class CategoryProducts(val category: String?) : Route(1)
     data object Favorites : Route(1)
     data object SwitchRegister : Route(1)
     data object PrinterSettings : Route(1)
@@ -119,6 +121,7 @@ fun App() {
                     onOpenCheckout = { catalogStore.dispatch(CatalogIntent.Checkout) },
                     onOpenAi = { route = Route.AiChat },
                     onOpenFavorites = { route = Route.Favorites },
+                    onOpenCategory = { category -> route = Route.CategoryProducts(category) },
                     onOpenSwitchRegister = { route = Route.SwitchRegister },
                     onOpenPrinterSettings = { route = Route.PrinterSettings },
                     onOpenPreferences = { route = Route.Preferences },
@@ -134,6 +137,13 @@ fun App() {
                         }
                         route = Route.Main
                     },
+                )
+                is Route.CategoryProducts -> CategoryProductsScreen(
+                    category = current.category,
+                    catalogStore = catalogStore,
+                    favoritesStore = favoritesStore,
+                    onBack = { route = Route.Main },
+                    onOpenProduct = { product -> route = Route.ProductDetail(product) },
                 )
                 Route.Favorites -> FavoritesScreen(
                     favoritesStore = favoritesStore,

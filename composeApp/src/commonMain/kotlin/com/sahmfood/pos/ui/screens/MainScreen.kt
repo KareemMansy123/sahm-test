@@ -73,6 +73,7 @@ fun MainScreen(
     onOpenCheckout: () -> Unit,
     onOpenAi: () -> Unit,
     onOpenFavorites: () -> Unit,
+    onOpenCategory: (String?) -> Unit,
     onOpenSwitchRegister: () -> Unit,
     onOpenPrinterSettings: () -> Unit,
     onOpenPreferences: () -> Unit,
@@ -109,10 +110,7 @@ fun MainScreen(
                     )
                     "menu" -> CategoriesTabBody(
                         catalogStore = catalogStore,
-                        onCategoryPicked = { category ->
-                            catalogStore.dispatch(CatalogIntent.SelectCategory(category))
-                            scope.launch { pagerState.animateScrollToPage(0) }
-                        },
+                        onCategoryPicked = { category -> onOpenCategory(category) },
                     )
                     "orders" -> OrdersTabBody(historyStore = historyStore)
                     "profile" -> ProfileScreen(
