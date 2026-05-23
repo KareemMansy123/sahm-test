@@ -13,4 +13,7 @@ data class ProductEntity(
     val imageUrl: String?,
     val description: String,
     val isAvailable: Boolean,
+    val nameAr: String? = null,
+    val descriptionAr: String? = null,
+    val categoryAr: String? = null,
 )

@@ -92,6 +92,7 @@ fun CheckoutScreen(
 ) {
     val state by store.state.collectAsState()
 
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
     LaunchedEffect(store) {
         store.effects.collect { eff ->
             if (eff is CheckoutEffect.PaymentSucceeded) onPaymentComplete()
@@ -104,7 +105,7 @@ fun CheckoutScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Checkout",
+                        strings.checkoutTitle,
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
@@ -144,7 +145,7 @@ fun CheckoutScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Text(
-                            "Total Amount",
+                            strings.checkoutTotalAmount,
                             style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
                             color = Neutral80,
                         )
@@ -159,8 +160,8 @@ fun CheckoutScreen(
                     }
                     Spacer(Modifier.height(SahmSpacing.md))
                     PlazaPrimaryButton(
-                        text = if (state.paymentMethod == PaymentMethod.CASH) "Confirm Cash Payment"
-                               else "Confirm Card Payment",
+                        text = if (state.paymentMethod == PaymentMethod.CASH) strings.checkoutConfirmCash
+                               else strings.checkoutConfirmCard,
                         onClick = { store.dispatch(CheckoutIntent.ConfirmPayment) },
                         enabled = state.canConfirm && !state.isProcessing,
                     )
@@ -181,7 +182,7 @@ fun CheckoutScreen(
             verticalArrangement = Arrangement.spacedBy(SahmSpacing.lg),
         ) {
             item {
-                CheckoutSectionCard(icon = Icons.Rounded.Receipt, title = "Order Summary") {
+                CheckoutSectionCard(icon = Icons.Rounded.Receipt, title = strings.checkoutOrderSummary) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         state.items.forEach { ci ->
                             Row(
@@ -223,10 +224,10 @@ fun CheckoutScreen(
                 }
             }
             item {
-                CheckoutSectionCard(icon = Icons.Rounded.LocationOn, title = "Counter") {
+                CheckoutSectionCard(icon = Icons.Rounded.LocationOn, title = strings.checkoutCounter) {
                     Column {
                         Text(
-                            "Sahm Food · Counter 1",
+                            strings.checkoutCounterValue,
                             style = MaterialTheme.typography.bodyLarge.copy(
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 14.sp,
@@ -235,7 +236,7 @@ fun CheckoutScreen(
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            "Cairo · Egypt",
+                            strings.checkoutCounterLocation,
                             style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
                             color = Neutral60,
                         )
@@ -243,21 +244,21 @@ fun CheckoutScreen(
                 }
             }
             item {
-                CheckoutSectionCard(icon = Icons.Rounded.Payments, title = "Payment Method") {
+                CheckoutSectionCard(icon = Icons.Rounded.Payments, title = strings.checkoutPaymentMethod) {
                     Column(verticalArrangement = Arrangement.spacedBy(SahmSpacing.md)) {
                         PaymentMethodOption(
                             icon = Icons.Rounded.AttachMoney,
                             iconColor = SecondaryColorLight,
-                            title = "Cash",
-                            subtitle = "Pay with physical cash at counter",
+                            title = strings.checkoutCash,
+                            subtitle = strings.checkoutCashDescription,
                             selected = state.paymentMethod == PaymentMethod.CASH,
                             onClick = { store.dispatch(CheckoutIntent.SetPaymentMethod(PaymentMethod.CASH)) },
                         )
                         PaymentMethodOption(
                             icon = Icons.Rounded.CreditCard,
                             iconColor = AccentBlue,
-                            title = "Card",
-                            subtitle = "Tap, chip, or swipe",
+                            title = strings.checkoutCard,
+                            subtitle = strings.checkoutCardDescription,
                             selected = state.paymentMethod == PaymentMethod.CARD,
                             onClick = { store.dispatch(CheckoutIntent.SetPaymentMethod(PaymentMethod.CARD)) },
                         )
@@ -270,9 +271,9 @@ fun CheckoutScreen(
                 item { CardTenderCard() }
             }
             item {
-                CheckoutSectionCard(icon = Icons.Rounded.Notes, title = "Order Notes") {
+                CheckoutSectionCard(icon = Icons.Rounded.Notes, title = strings.checkoutOrderNotes) {
                     Text(
-                        "Add notes for the kitchen (optional)",
+                        strings.checkoutOrderNotesHint,
                         style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
                         color = Neutral60,
                     )
@@ -373,7 +374,8 @@ private fun CardTenderCard() {
         label = "alpha",
     )
 
-    CheckoutSectionCard(icon = Icons.Rounded.Contactless, title = "Tap Card on Terminal") {
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
+    CheckoutSectionCard(icon = Icons.Rounded.Contactless, title = strings.checkoutTapCardTitle) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(vertical = SahmSpacing.lg),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -402,7 +404,7 @@ private fun CardTenderCard() {
             }
             Spacer(Modifier.height(SahmSpacing.lg))
             Text(
-                "Hold card or device near the payment terminal.",
+                strings.checkoutTapCardHint,
                 style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
                 color = Neutral80,
                 textAlign = TextAlign.Center,
@@ -412,7 +414,7 @@ private fun CardTenderCard() {
                 Box(modifier = Modifier.size(8.dp).background(AccentTeal, CircleShape))
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    "Terminal ready",
+                    strings.checkoutTerminalReady,
                     style = MaterialTheme.typography.labelMedium.copy(
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 12.sp,

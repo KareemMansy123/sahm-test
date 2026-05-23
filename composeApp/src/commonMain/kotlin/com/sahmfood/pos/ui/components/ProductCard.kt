@@ -74,6 +74,10 @@ fun ProductCard(
     rating: Double = 4.5,
     isExpress: Boolean = true,
 ) {
+    val lang = com.sahmfood.pos.ui.strings.currentLanguageCode()
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
+    val displayName = product.localizedName(lang)
+    val displayCategory = product.localizedCategory(lang)
     val interaction = remember { MutableInteractionSource() }
     val isPressed by interaction.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -143,7 +147,7 @@ fun ProductCard(
                 ) {
                     Icon(
                         Icons.Rounded.Add,
-                        contentDescription = "Add ${product.name}",
+                        contentDescription = displayName,
                         tint = Color.White,
                         modifier = Modifier.size(20.dp),
                     )
@@ -171,7 +175,7 @@ fun ProductCard(
                         )
                         Spacer(Modifier.size(2.dp))
                         Text(
-                            "Express",
+                            strings.expressBadge,
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 10.sp,
@@ -181,7 +185,7 @@ fun ProductCard(
                     }
                 }
                 Text(
-                    product.name,
+                    displayName,
                     style = MaterialTheme.typography.bodySmall.copy(
                         fontWeight = FontWeight.Medium,
                         fontSize = 13.sp,

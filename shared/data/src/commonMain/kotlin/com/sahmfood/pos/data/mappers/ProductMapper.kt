@@ -13,6 +13,9 @@ object ProductMapper {
         imageUrl = entity.imageUrl,
         description = entity.description,
         isAvailable = entity.isAvailable,
+        nameAr = entity.nameAr,
+        descriptionAr = entity.descriptionAr,
+        categoryAr = entity.categoryAr,
     )
 
     fun toEntity(product: Product): ProductEntity = ProductEntity(
@@ -24,6 +27,9 @@ object ProductMapper {
         imageUrl = product.imageUrl,
         description = product.description,
         isAvailable = product.isAvailable,
+        nameAr = product.nameAr,
+        descriptionAr = product.descriptionAr,
+        categoryAr = product.categoryAr,
     )
 
     fun toDomainList(entities: List<ProductEntity>): List<Product> = entities.map(::toDomain)

@@ -62,10 +62,14 @@ fun CategoryProductsScreen(
 ) {
     val state by catalogStore.state.collectAsState()
     val favState by favoritesStore.state.collectAsState()
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
+    val lang = com.sahmfood.pos.ui.strings.currentLanguageCode()
     val products = remember(state.products, category) {
         if (category == null) state.products
         else state.products.filter { it.category == category }
     }
+    val titleLabel = if (category == null) strings.categoriesAllItems
+                     else products.firstOrNull()?.localizedCategory(lang) ?: category
 
     Scaffold(
         containerColor = Neutral5,
@@ -74,14 +78,15 @@ fun CategoryProductsScreen(
                 title = {
                     androidx.compose.foundation.layout.Column {
                         Text(
-                            category ?: "All Items",
+                            titleLabel,
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Bold, fontSize = 18.sp),
                             color = Neutral95,
                         )
                         if (products.isNotEmpty()) {
                             Text(
-                                if (products.size == 1) "1 item" else "${products.size} items",
+                                if (products.size == 1) strings.itemCountOne
+                                else strings.itemCountMany(products.size),
                                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
                                 color = Neutral60,
                             )
@@ -92,7 +97,7 @@ fun CategoryProductsScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Rounded.ArrowBackIos,
-                            contentDescription = "Back to categories",
+                            contentDescription = strings.commonBack,
                             tint = Neutral95,
                             modifier = Modifier.size(18.dp),
                         )
@@ -106,8 +111,8 @@ fun CategoryProductsScreen(
             if (products.isEmpty()) {
                 PlazaEmptyState(
                     icon = Icons.Rounded.ShoppingBag,
-                    title = "No items in $category",
-                    description = "Add products to this category from the catalog.",
+                    title = strings.categoryNoItemsTitle(titleLabel),
+                    description = strings.categoryNoItemsDescription,
                 )
             } else {
                 BoxWithConstraints {

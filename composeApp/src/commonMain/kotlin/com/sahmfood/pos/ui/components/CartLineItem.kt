@@ -116,7 +116,7 @@ fun CartLineItem(
                 }
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    item.product.name,
+                    item.product.localizedName(com.sahmfood.pos.ui.strings.currentLanguageCode()),
                     style = MaterialTheme.typography.titleSmall.copy(
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp,
@@ -158,7 +158,7 @@ fun CartLineItem(
             ) {
                 Icon(
                     Icons.Rounded.DeleteOutline,
-                    contentDescription = "Remove ${item.product.name}",
+                    contentDescription = item.product.localizedName(com.sahmfood.pos.ui.strings.currentLanguageCode()),
                     tint = Neutral80,
                     modifier = Modifier.size(18.dp),
                 )

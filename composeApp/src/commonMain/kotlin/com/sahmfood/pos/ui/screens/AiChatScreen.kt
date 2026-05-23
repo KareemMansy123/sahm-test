@@ -64,7 +64,6 @@ import com.sahmfood.pos.presentation.ai.AiChatIntent
 import com.sahmfood.pos.presentation.ai.AiChatStore
 import com.sahmfood.pos.presentation.ai.AiMessage
 import com.sahmfood.pos.presentation.ai.AiRole
-import com.sahmfood.pos.presentation.ai.QuickAction
 import com.sahmfood.pos.ui.theme.BrandPrimary
 import com.sahmfood.pos.ui.theme.BrandPrimaryLight
 import com.sahmfood.pos.ui.theme.Neutral10
@@ -83,6 +82,7 @@ fun AiChatScreen(
     onBack: () -> Unit,
 ) {
     val state by store.state.collectAsState()
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
     val listState = rememberLazyListState()
 
     LaunchedEffect(state.messages.size) {
@@ -118,7 +118,7 @@ fun AiChatScreen(
                         Spacer(Modifier.width(SahmSpacing.md))
                         Column {
                             Text(
-                                "AI Assistant",
+                                com.sahmfood.pos.ui.strings.LocalSahmStrings.current.aiAssistantTitle,
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 16.sp,
@@ -126,7 +126,7 @@ fun AiChatScreen(
                                 color = Neutral95,
                             )
                             Text(
-                                "Online",
+                                com.sahmfood.pos.ui.strings.LocalSahmStrings.current.aiAssistantOnline,
                                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
                                 color = SahmSuccess,
                             )
@@ -137,7 +137,7 @@ fun AiChatScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Rounded.ArrowBackIos,
-                            contentDescription = "Back",
+                            contentDescription = strings.commonBack,
                             tint = Neutral95,
                             modifier = Modifier.size(18.dp),
                         )
@@ -147,7 +147,7 @@ fun AiChatScreen(
                     IconButton(onClick = { store.dispatch(AiChatIntent.Clear) }) {
                         Icon(
                             Icons.Rounded.DeleteOutline,
-                            contentDescription = "Clear chat",
+                            contentDescription = null,
                             tint = Neutral80,
                         )
                     }
@@ -170,8 +170,9 @@ fun AiChatScreen(
                     horizontalArrangement = Arrangement.spacedBy(SahmSpacing.sm),
                 ) {
                     items(state.quickActions) { action ->
-                        QuickActionChip(action) {
-                            store.dispatch(AiChatIntent.QuickAction(action.prompt))
+                        val (label, prompt) = resolveQuickAction(action.key, strings)
+                        QuickActionChip(label = label) {
+                            store.dispatch(AiChatIntent.QuickAction(prompt))
                         }
                     }
                 }
@@ -201,8 +202,19 @@ fun AiChatScreen(
     }
 }
 
+private fun resolveQuickAction(
+    key: String,
+    strings: com.sahmfood.pos.ui.strings.SahmStrings,
+): Pair<String, String> = when (key) {
+    "best_sellers" -> strings.aiQuickBestSellers to strings.aiQuickBestSellersPrompt
+    "pending_orders" -> strings.aiQuickPending to strings.aiQuickPendingPrompt
+    "todays_revenue" -> strings.aiQuickRevenue to strings.aiQuickRevenuePrompt
+    "slowest_item" -> strings.aiQuickSlowest to strings.aiQuickSlowestPrompt
+    else -> key to key
+}
+
 @Composable
-private fun QuickActionChip(action: QuickAction, onClick: () -> Unit) {
+private fun QuickActionChip(label: String, onClick: () -> Unit) {
     Surface(
         modifier = Modifier.clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
@@ -222,7 +234,7 @@ private fun QuickActionChip(action: QuickAction, onClick: () -> Unit) {
             )
             Spacer(Modifier.width(SahmSpacing.sm))
             Text(
-                action.label,
+                label,
                 style = MaterialTheme.typography.labelLarge.copy(
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
@@ -293,7 +305,9 @@ private fun ChatBubble(message: AiMessage) {
                     .background(Neutral20, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("Y", style = MaterialTheme.typography.labelMedium.copy(
+                val initial = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
+                    .profileGreeting.firstOrNull()?.toString() ?: "U"
+                Text(initial, style = MaterialTheme.typography.labelMedium.copy(
                     fontWeight = FontWeight.Bold, fontSize = 13.sp), color = Neutral80)
             }
         }
@@ -394,7 +408,7 @@ private fun ChatInput(
                     Box(modifier = Modifier.weight(1f)) {
                         if (text.isEmpty()) {
                             Text(
-                                "Ask me anything…",
+                                com.sahmfood.pos.ui.strings.LocalSahmStrings.current.aiInputHint,
                                 style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
                                 color = Neutral60,
                             )
@@ -428,7 +442,7 @@ private fun ChatInput(
             ) {
                 Icon(
                     Icons.AutoMirrored.Rounded.Send,
-                    contentDescription = "Send",
+                    contentDescription = null,
                     tint = if (text.isBlank() || !enabled) Neutral60 else Color.White,
                     modifier = Modifier.size(20.dp),
                 )

@@ -9,7 +9,12 @@ data class AiMessage(
     val timestampMs: Long,
 )
 
-data class QuickAction(val label: String, val prompt: String)
+/**
+ * UI-resolved label/prompt is decided at render time from [SahmStrings] using
+ * [key]. We keep only the stable key here so the state survives language
+ * switches without re-emitting a new list.
+ */
+data class QuickAction(val key: String)
 
 data class AiChatState(
     val messages: List<AiMessage> = emptyList(),
@@ -18,10 +23,10 @@ data class AiChatState(
 )
 
 val defaultQuickActions = listOf(
-    QuickAction("Best sellers today", "What are the best-selling items today?"),
-    QuickAction("Pending orders", "How many orders are still being prepared?"),
-    QuickAction("Today's revenue", "What is today's total revenue?"),
-    QuickAction("Slowest item", "Which item sold the least today?"),
+    QuickAction("best_sellers"),
+    QuickAction("pending_orders"),
+    QuickAction("todays_revenue"),
+    QuickAction("slowest_item"),
 )
 
 sealed interface AiChatIntent {

@@ -169,6 +169,8 @@ private fun CategoriesTabBody(
     onCategoryPicked: (String?) -> Unit,
 ) {
     val state by catalogStore.state.collectAsState()
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
+    val lang = com.sahmfood.pos.ui.strings.currentLanguageCode()
     BoxWithConstraints(modifier = Modifier.fillMaxSize().background(Neutral5)) {
         val columns = when {
             maxWidth >= 840.dp -> 4
@@ -178,14 +180,14 @@ private fun CategoriesTabBody(
         Column(modifier = Modifier.fillMaxSize()) {
             Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
             Text(
-                "Categories",
+                strings.categoriesTitle,
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold, fontSize = 22.sp),
                 color = Neutral95,
                 modifier = Modifier.padding(SahmSpacing.lg),
             )
             Text(
-                "Tap a category to filter the menu",
+                strings.categoriesSubtitle,
                 style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp),
                 color = com.sahmfood.pos.ui.theme.Neutral60,
                 modifier = Modifier.padding(horizontal = SahmSpacing.lg),
@@ -194,8 +196,8 @@ private fun CategoriesTabBody(
             if (state.categories.isEmpty()) {
                 PlazaEmptyState(
                     icon = Icons.Rounded.ShoppingBag,
-                    title = "No categories",
-                    description = "The menu is empty.",
+                    title = strings.categoriesEmptyTitle,
+                    description = strings.categoriesEmptyDescription,
                 )
             } else {
                 val cards = listOf<Pair<String?, Int>>(null to -1) +
@@ -210,8 +212,15 @@ private fun CategoriesTabBody(
                     verticalArrangement = Arrangement.spacedBy(SahmSpacing.md),
                 ) {
                     items(cards, key = { (cat, _) -> cat ?: "_all" }) { (category, idx) ->
+                        // Resolve the Arabic category label if needed by sampling a product.
+                        val label = if (category == null) {
+                            strings.categoriesAllItems
+                        } else {
+                            state.products.firstOrNull { it.category == category }
+                                ?.localizedCategory(lang) ?: category
+                        }
                         com.sahmfood.pos.ui.components.CategoryGridCard(
-                            label = category ?: "All Items",
+                            label = label,
                             category = category,
                             pastelIndex = if (idx < 0) state.categories.size else idx,
                             itemCount = if (category == null) state.products.size

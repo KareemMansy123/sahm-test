@@ -88,8 +88,9 @@ fun CategoryGridCard(
                 maxLines = 1,
             )
             Spacer(Modifier.height(2.dp))
+            val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
             Text(
-                if (itemCount == 1) "1 item" else "$itemCount items",
+                if (itemCount == 1) strings.itemCountOne else strings.itemCountMany(itemCount),
                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
                 color = Neutral60,
             )

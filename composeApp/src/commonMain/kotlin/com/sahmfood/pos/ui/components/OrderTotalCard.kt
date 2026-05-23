@@ -56,15 +56,16 @@ fun OrderTotalCard(
         label = "grand-total",
     )
 
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        SummaryRow("Subtotal", totals.subtotal.toDisplayString())
-        SummaryRow("Tax (14%)", totals.taxAmount.toDisplayString())
+        SummaryRow(strings.cartSubtotal, totals.subtotal.toDisplayString())
+        SummaryRow(strings.cartTax, totals.taxAmount.toDisplayString())
         if (totals.discount.amount > 0) {
             SummaryRow(
-                "Discount",
+                strings.cartDiscount,
                 "- " + totals.discount.toDisplayString(),
                 color = FreeDeliveryColor,
             )
@@ -76,7 +77,7 @@ fun OrderTotalCard(
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
-                "Total",
+                strings.cartTotal,
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,

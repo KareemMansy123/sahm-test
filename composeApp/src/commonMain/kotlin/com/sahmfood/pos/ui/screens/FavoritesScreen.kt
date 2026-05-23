@@ -73,9 +73,9 @@ fun FavoritesScreen(
         }
         state.favoriteProducts.isEmpty() -> PlazaEmptyState(
             icon = Icons.Rounded.FavoriteBorder,
-            title = "No favorites yet",
-            description = "Tap the heart on any item to pin it here for quick one-tap access.",
-            ctaLabel = "Browse Menu",
+            title = com.sahmfood.pos.ui.strings.LocalSahmStrings.current.favoritesEmptyTitle,
+            description = com.sahmfood.pos.ui.strings.LocalSahmStrings.current.favoritesEmptyDescription,
+            ctaLabel = com.sahmfood.pos.ui.strings.LocalSahmStrings.current.favoritesBrowseMenu,
             onCta = onBrowseMenu,
         )
         else -> LazyColumn(

@@ -55,18 +55,27 @@ import com.sahmfood.pos.ui.theme.Neutral80
  */
 data class BottomTab(
     val key: String,
-    val label: String,
     val iconActive: ImageVector,
     val iconIdle: ImageVector,
 )
 
 val PlazaBottomTabs = listOf(
-    BottomTab("home", "Home", Icons.Rounded.Home, Icons.Outlined.Home),
-    BottomTab("cart", "My Cart", Icons.Rounded.ShoppingCart, Icons.Outlined.ShoppingCart),
-    BottomTab("menu", "Categories", Icons.Rounded.Category, Icons.Outlined.Category),
-    BottomTab("orders", "Orders", Icons.Rounded.ShoppingBag, Icons.Outlined.ShoppingBag),
-    BottomTab("profile", "Profile", Icons.Rounded.Person, Icons.Outlined.Person),
+    BottomTab("home", Icons.Rounded.Home, Icons.Outlined.Home),
+    BottomTab("cart", Icons.Rounded.ShoppingCart, Icons.Outlined.ShoppingCart),
+    BottomTab("menu", Icons.Rounded.Category, Icons.Outlined.Category),
+    BottomTab("orders", Icons.Rounded.ShoppingBag, Icons.Outlined.ShoppingBag),
+    BottomTab("profile", Icons.Rounded.Person, Icons.Outlined.Person),
 )
+
+/** Resolves a tab's display label from the currently-active strings. */
+fun labelFor(key: String, str: com.sahmfood.pos.ui.strings.SahmStrings): String = when (key) {
+    "home" -> str.navHome
+    "cart" -> str.navCart
+    "menu" -> str.navCategories
+    "orders" -> str.navOrders
+    "profile" -> str.navProfile
+    else -> key
+}
 
 @Composable
 fun PlazaBottomNav(
@@ -109,6 +118,8 @@ private fun BottomNavTile(
     onClick: () -> Unit,
     modifier: Modifier,
 ) {
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
+    val label = labelFor(tab.key, strings)
     val bg by animateColorAsState(
         targetValue = if (selected) BrandPrimaryContainer else Color.Transparent,
         animationSpec = tween(200),
@@ -130,7 +141,7 @@ private fun BottomNavTile(
         Box(contentAlignment = Alignment.TopEnd) {
             Icon(
                 imageVector = if (selected) tab.iconActive else tab.iconIdle,
-                contentDescription = tab.label,
+                contentDescription = label,
                 tint = contentColor,
                 modifier = Modifier.size(24.dp),
             )
@@ -156,7 +167,7 @@ private fun BottomNavTile(
         }
         Spacer(Modifier.height(4.dp))
         Text(
-            tab.label,
+            label,
             style = MaterialTheme.typography.labelSmall.copy(
                 fontSize = 11.sp,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,

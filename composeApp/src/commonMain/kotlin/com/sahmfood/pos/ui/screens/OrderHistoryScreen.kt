@@ -85,14 +85,15 @@ fun OrderHistoryScreen(
     onBack: () -> Unit,
 ) {
     val state by store.state.collectAsState()
-    var filter by remember { mutableStateOf("All") }
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
+    var filterKey by remember { mutableStateOf("all") }
 
-    val filtered = remember(state.orders, filter) {
-        when (filter) {
-            "Cash" -> state.orders.filter { it.paymentMethod == PaymentMethod.CASH }
-            "Card" -> state.orders.filter { it.paymentMethod == PaymentMethod.CARD }
-            "Synced" -> state.orders.filter { it.status == OrderStatus.SYNCED }
-            "Pending" -> state.orders.filter {
+    val filtered = remember(state.orders, filterKey) {
+        when (filterKey) {
+            "cash" -> state.orders.filter { it.paymentMethod == PaymentMethod.CASH }
+            "card" -> state.orders.filter { it.paymentMethod == PaymentMethod.CARD }
+            "synced" -> state.orders.filter { it.status == OrderStatus.SYNCED }
+            "pending" -> state.orders.filter {
                 it.status == OrderStatus.SYNC_PENDING || it.status == OrderStatus.PAID
             }
             else -> state.orders
@@ -105,7 +106,7 @@ fun OrderHistoryScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Order History",
+                        strings.historyTitle,
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
@@ -116,7 +117,7 @@ fun OrderHistoryScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Rounded.ArrowBackIos,
-                            contentDescription = "Back",
+                            contentDescription = strings.commonBack,
                             tint = Neutral95,
                             modifier = Modifier.size(18.dp),
                         )
@@ -136,27 +137,34 @@ fun OrderHistoryScreen(
             ) {
                 StatCard(
                     icon = Icons.Rounded.Receipt,
-                    label = "Orders Today",
+                    label = strings.historyOrdersToday,
                     value = state.todayOrderCount.toString(),
                     modifier = Modifier.weight(1f),
                 )
                 StatCard(
                     icon = Icons.Rounded.AccountBalanceWallet,
-                    label = "Revenue Today",
+                    label = strings.historyRevenueToday,
                     value = Money(state.todayRevenue).toDisplayString(),
                     modifier = Modifier.weight(1f),
                 )
             }
             // Filter chips
+            val filterOptions = listOf(
+                "all" to strings.historyFilterAll,
+                "cash" to strings.historyFilterCash,
+                "card" to strings.historyFilterCard,
+                "synced" to strings.historyFilterSynced,
+                "pending" to strings.historyFilterPending,
+            )
             LazyRow(
                 contentPadding = PaddingValues(horizontal = SahmSpacing.lg),
                 horizontalArrangement = Arrangement.spacedBy(SahmSpacing.sm),
             ) {
-                items(listOf("All", "Cash", "Card", "Synced", "Pending")) { name ->
+                items(filterOptions) { (key, label) ->
                     FilterPill(
-                        label = name,
-                        selected = filter == name,
-                        onClick = { filter = name },
+                        label = label,
+                        selected = filterKey == key,
+                        onClick = { filterKey = key },
                     )
                 }
             }
@@ -165,8 +173,8 @@ fun OrderHistoryScreen(
             if (filtered.isEmpty()) {
                 PlazaEmptyState(
                     icon = Icons.Rounded.ReceiptLong,
-                    title = "No orders yet",
-                    description = "Completed orders will appear here.",
+                    title = strings.historyEmpty,
+                    description = strings.historyEmpty,
                 )
             } else {
                 LazyColumn(
@@ -264,6 +272,7 @@ private fun FilterPill(label: String, selected: Boolean, onClick: () -> Unit) {
 
 @Composable
 private fun OrderHistoryCard(order: Order) {
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -294,7 +303,7 @@ private fun OrderHistoryCard(order: Order) {
             Spacer(Modifier.width(SahmSpacing.md))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "Order #${order.id.takeLast(6).uppercase()}",
+                    strings.historyOrderHashPrefix + order.id.takeLast(6).uppercase(),
                     style = MaterialTheme.typography.titleSmall.copy(
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp,
@@ -325,12 +334,13 @@ private fun OrderHistoryCard(order: Order) {
 
 @Composable
 private fun SyncBadge(status: OrderStatus) {
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
     val (icon, color, label) = when (status) {
-        OrderStatus.SYNCED -> Triple(Icons.Rounded.CloudDone, SahmSuccess, "Synced")
+        OrderStatus.SYNCED -> Triple(Icons.Rounded.CloudDone, SahmSuccess, strings.historyStatusSynced)
         OrderStatus.SYNC_PENDING, OrderStatus.PAID ->
-            Triple(Icons.Rounded.CloudQueue, SahmWarning, "Pending")
-        OrderStatus.SYNC_FAILED -> Triple(Icons.Rounded.CloudOff, SahmError, "Failed")
-        OrderStatus.DRAFT -> Triple(Icons.Rounded.CloudOff, Neutral60, "Draft")
+            Triple(Icons.Rounded.CloudQueue, SahmWarning, strings.historyStatusPending)
+        OrderStatus.SYNC_FAILED -> Triple(Icons.Rounded.CloudOff, SahmError, strings.historyStatusFailed)
+        OrderStatus.DRAFT -> Triple(Icons.Rounded.CloudOff, Neutral60, strings.historyStatusDraft)
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(

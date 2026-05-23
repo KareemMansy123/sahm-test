@@ -55,28 +55,29 @@ fun ThemePickerSheet(
     onPick: (AppTheme) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         containerColor = Color.White,
         shape = RoundedCornerShape(topStart = SahmRadius.xxl, topEnd = SahmRadius.xxl),
     ) {
-        SheetHeader("Choose Theme")
+        SheetHeader(strings.themePickerTitle)
         OptionRow(
             icon = Icons.Rounded.Brightness7,
-            label = "Light",
+            label = strings.themeLight,
             selected = current == AppTheme.Light,
             onClick = { onPick(AppTheme.Light) },
         )
         OptionRow(
             icon = Icons.Rounded.DarkMode,
-            label = "Dark",
+            label = strings.themeDark,
             selected = current == AppTheme.Dark,
             onClick = { onPick(AppTheme.Dark) },
         )
         OptionRow(
             icon = Icons.Rounded.PhoneAndroid,
-            label = "Follow System",
+            label = strings.themeSystem,
             selected = current == AppTheme.System,
             onClick = { onPick(AppTheme.System) },
         )
@@ -92,13 +93,14 @@ fun LanguagePickerSheet(
     onPick: (AppLanguage) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         containerColor = Color.White,
         shape = RoundedCornerShape(topStart = SahmRadius.xxl, topEnd = SahmRadius.xxl),
     ) {
-        SheetHeader("Choose Language")
+        SheetHeader(strings.languagePickerTitle)
         AppLanguage.entries.forEach { lang ->
             OptionRow(
                 icon = Icons.Rounded.Translate,
@@ -118,6 +120,7 @@ fun AboutSheet(
     onDismiss: () -> Unit,
     onOpenLink: (String) -> Unit,
 ) {
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -142,20 +145,20 @@ fun AboutSheet(
                     color = BrandPrimary)
             }
             Spacer(Modifier.height(SahmSpacing.md))
-            Text("Sahm Food POS",
+            Text(strings.aboutAppName,
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold, fontSize = 22.sp),
                 color = Neutral95)
             Spacer(Modifier.height(4.dp))
-            Text("Version 1.0.0 · Build 2026.05.001",
+            Text(strings.aboutVersionLine,
                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
                 color = Neutral60)
             Spacer(Modifier.height(SahmSpacing.xl))
-            InfoRow("Build", "debug")
-            InfoRow("Kotlin", "2.0.21")
-            InfoRow("Compose Multiplatform", "1.7.0")
-            InfoRow("SQLDelight", "2.0.2")
-            InfoRow("Koin", "4.0.0")
+            InfoRow(strings.aboutBuildLabel, strings.aboutBuildValue)
+            InfoRow(strings.aboutKotlinLabel, "2.0.21")
+            InfoRow(strings.aboutComposeLabel, "1.7.0")
+            InfoRow(strings.aboutSqlDelightLabel, "2.0.2")
+            InfoRow(strings.aboutKoinLabel, "4.0.0")
             Spacer(Modifier.height(SahmSpacing.lg))
             Surface(
                 modifier = Modifier
@@ -168,7 +171,7 @@ fun AboutSheet(
                     modifier = Modifier.padding(SahmSpacing.lg),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("View source on GitHub",
+                    Text(strings.aboutGithubLink,
                         style = MaterialTheme.typography.titleSmall.copy(
                             fontWeight = FontWeight.SemiBold, fontSize = 14.sp),
                         color = BrandPrimary,
@@ -182,7 +185,7 @@ fun AboutSheet(
                 }
             }
             Spacer(Modifier.height(SahmSpacing.lg))
-            Text("© 2026 Sahm Food. All rights reserved.",
+            Text(strings.aboutCopyright,
                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
                 color = Neutral60)
         }
@@ -259,7 +262,7 @@ private fun OptionRow(
             if (selected) {
                 Icon(
                     Icons.Rounded.Check,
-                    contentDescription = "Selected",
+                    contentDescription = null,
                     tint = BrandPrimary,
                     modifier = Modifier.size(20.dp),
                 )

@@ -75,11 +75,12 @@ fun OrderTrackingScreen(
     orderId: String,
     onBack: () -> Unit,
 ) {
-    val steps = remember {
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
+    val steps = remember(strings) {
         listOf(
-            OrderStep("Received", Icons.Rounded.Restaurant),
-            OrderStep("Preparing", Icons.Rounded.LocalDining),
-            OrderStep("Ready", Icons.Rounded.CheckCircle),
+            OrderStep(strings.trackingStageReceived, Icons.Rounded.Restaurant),
+            OrderStep(strings.trackingStagePreparing, Icons.Rounded.LocalDining),
+            OrderStep(strings.trackingStageReady, Icons.Rounded.CheckCircle),
         )
     }
     var currentStep by remember { mutableIntStateOf(0) }
@@ -97,7 +98,7 @@ fun OrderTrackingScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Order Tracking",
+                        strings.trackingTitle,
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
@@ -108,7 +109,7 @@ fun OrderTrackingScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Rounded.ArrowBackIos,
-                            contentDescription = "Back",
+                            contentDescription = strings.commonBack,
                             tint = Neutral95,
                             modifier = Modifier.size(18.dp),
                         )
@@ -141,7 +142,7 @@ fun OrderTrackingScreen(
                     )
                     Spacer(Modifier.height(SahmSpacing.sm))
                     Text(
-                        "Live kitchen status",
+                        strings.trackingLiveStatus,
                         style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
                         color = Neutral60,
                     )
@@ -163,7 +164,7 @@ fun OrderTrackingScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Text(
-                            "Order #${orderId.takeLast(6).uppercase()}",
+                            strings.historyOrderHashPrefix + orderId.takeLast(6).uppercase(),
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 18.sp,
@@ -179,14 +180,18 @@ fun OrderTrackingScreen(
                     Spacer(Modifier.height(SahmSpacing.lg))
                     InfoRow(
                         icon = Icons.Rounded.AccessTime,
-                        label = "Estimated time",
-                        value = "5–8 minutes",
+                        label = strings.trackingEstimatedTime,
+                        value = strings.trackingEstimatedTimeValue,
                     )
                     Spacer(Modifier.height(SahmSpacing.md))
                     InfoRow(
                         icon = Icons.Rounded.Update,
-                        label = "Last update",
-                        value = stageLabel(currentStep),
+                        label = strings.trackingLastUpdate,
+                        value = when (currentStep) {
+                            0 -> strings.trackingStatusReceived
+                            1 -> strings.trackingStatusPreparing
+                            else -> strings.trackingStatusReady
+                        },
                     )
                 }
             }
@@ -196,10 +201,11 @@ fun OrderTrackingScreen(
 
 @Composable
 private fun StatusPill(currentStep: Int) {
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
     val (label, color) = when (currentStep) {
-        0 -> "Received" to SahmWarning
-        1 -> "Preparing" to BrandPrimary
-        else -> "Ready" to SahmSuccess
+        0 -> strings.trackingStageReceived to SahmWarning
+        1 -> strings.trackingStagePreparing to BrandPrimary
+        else -> strings.trackingStageReady to SahmSuccess
     }
     Surface(
         shape = RoundedCornerShape(20.dp),

@@ -50,6 +50,7 @@ fun CategoryStrip(
     selected: String?,
     onSelect: (String?) -> Unit,
     modifier: Modifier = Modifier,
+    labelFor: (String?) -> String = { it ?: "All" },
 ) {
     val all: List<String?> = listOf(null) + categories
     LazyRow(
@@ -59,7 +60,7 @@ fun CategoryStrip(
     ) {
         itemsIndexed(all) { index, category ->
             CategoryItem(
-                label = category ?: "All",
+                label = labelFor(category),
                 icon = category,
                 color = categoryPastel(index),
                 selected = selected == category,

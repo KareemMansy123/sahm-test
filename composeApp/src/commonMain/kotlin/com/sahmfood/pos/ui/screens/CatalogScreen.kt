@@ -76,6 +76,8 @@ fun CatalogScreen(
 ) {
     val state by store.state.collectAsState()
     val favState by favoritesStore.state.collectAsState()
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
+    val lang = com.sahmfood.pos.ui.strings.currentLanguageCode()
 
     BoxWithConstraints(
         modifier = Modifier
@@ -119,21 +121,30 @@ fun CatalogScreen(
                     }
                     Spacer(Modifier.height(SahmSpacing.lg))
                     PlazaHomeBanner(
-                        title = "Today's Special",
-                        subtitle = "20% off combo meals · Express only",
-                        ctaLabel = "Browse Combos",
+                        title = strings.homeBannerTitle,
+                        subtitle = strings.homeBannerSubtitle,
+                        ctaLabel = strings.homeBannerCta,
                         onCtaClick = { store.dispatch(CatalogIntent.SelectCategory(null)) },
                     )
                     Spacer(Modifier.height(SahmSpacing.lg))
-                    SectionHeader(title = "Shop by Category")
+                    SectionHeader(title = strings.homeSectionShopByCategory)
                     Spacer(Modifier.height(SahmSpacing.xs))
                     CategoryStrip(
                         categories = state.categories,
                         selected = state.selectedCategory,
                         onSelect = { store.dispatch(CatalogIntent.SelectCategory(it)) },
+                        labelFor = { cat ->
+                            if (cat == null) strings.historyFilterAll
+                            else state.products.firstOrNull { it.category == cat }
+                                ?.localizedCategory(lang) ?: cat
+                        },
                     )
                     Spacer(Modifier.height(SahmSpacing.sm))
-                    SectionHeader(title = state.selectedCategory ?: "All Items")
+                    val activeCatLabel = state.selectedCategory?.let { selected ->
+                        state.products.firstOrNull { it.category == selected }?.localizedCategory(lang)
+                            ?: selected
+                    } ?: strings.homeSectionAllItems
+                    SectionHeader(title = activeCatLabel)
                     Spacer(Modifier.height(SahmSpacing.sm))
                 }
             }
@@ -173,7 +184,7 @@ private fun NotificationBell(modifier: Modifier = Modifier) {
     ) {
         Icon(
             Icons.Outlined.NotificationsNone,
-            contentDescription = "Notifications",
+            contentDescription = com.sahmfood.pos.ui.strings.LocalSahmStrings.current.commonNotifications,
             tint = BrandPrimary,
             modifier = Modifier.size(22.dp),
         )

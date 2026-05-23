@@ -98,6 +98,8 @@ fun ProductDetailScreen(
     val totalPiastres = product.price.amount * quantity
     val total = Money(totalPiastres, product.price.currency)
     val scroll = rememberScrollState()
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
+    val lang = com.sahmfood.pos.ui.strings.currentLanguageCode()
 
     Box(
         modifier = Modifier
@@ -149,7 +151,7 @@ fun ProductDetailScreen(
                 // Category + Express
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        product.category,
+                        product.localizedCategory(lang),
                         style = MaterialTheme.typography.labelMedium.copy(
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
@@ -174,7 +176,7 @@ fun ProductDetailScreen(
                         )
                         Spacer(Modifier.size(4.dp))
                         Text(
-                            "Express",
+                            strings.expressBadge,
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 12.sp,
@@ -185,7 +187,7 @@ fun ProductDetailScreen(
                 }
                 Spacer(Modifier.height(SahmSpacing.sm))
                 Text(
-                    product.name,
+                    product.localizedName(lang),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 24.sp,
@@ -211,7 +213,7 @@ fun ProductDetailScreen(
                     )
                     Spacer(Modifier.size(6.dp))
                     Text(
-                        "(120 reviews)",
+                        strings.productReviewsSuffix,
                         style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
                         color = Neutral60,
                     )
@@ -228,11 +230,11 @@ fun ProductDetailScreen(
                 Spacer(Modifier.height(SahmSpacing.xl))
 
                 // Description card
-                InfoCard(title = "Description") {
+                InfoCard(title = strings.productDescription) {
+                    val resolvedDesc = product.localizedDescription(lang)
+                        .ifBlank { strings.productGenericDescriptionFallback(product.localizedCategory(lang)) }
                     Text(
-                        product.description.ifBlank {
-                            "Freshly prepared. Made to order. Our most-loved ${product.category.lowercase()} on the menu."
-                        },
+                        resolvedDesc,
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontSize = 14.sp,
                             lineHeight = 22.sp,
@@ -243,14 +245,17 @@ fun ProductDetailScreen(
 
                 Spacer(Modifier.height(SahmSpacing.lg))
                 // Quick facts card
-                InfoCard(title = "Quick Facts") {
-                    SpecRow("Category", product.category)
+                InfoCard(title = strings.productQuickFacts) {
+                    SpecRow(strings.productCategory, product.localizedCategory(lang))
                     Spacer(Modifier.height(6.dp))
-                    SpecRow("Item code", product.id)
+                    SpecRow(strings.productItemCode, product.id)
                     Spacer(Modifier.height(6.dp))
-                    SpecRow("Availability", if (product.isAvailable) "In stock" else "Out of stock")
+                    SpecRow(
+                        strings.productAvailability,
+                        if (product.isAvailable) strings.productInStock else strings.productOutOfStock,
+                    )
                     Spacer(Modifier.height(6.dp))
-                    SpecRow("Prep time", "5–8 min")
+                    SpecRow(strings.productPrepTime, strings.productPrepTimeValue)
                 }
             }
         }
@@ -344,7 +349,7 @@ fun ProductDetailScreen(
                 Spacer(Modifier.width(SahmSpacing.md))
                 Box(modifier = Modifier.weight(1f)) {
                     PlazaPrimaryButton(
-                        text = "Add ${total.toDisplayString()}",
+                        text = strings.productAddToOrderTemplate(total.toDisplayString()),
                         leadingIcon = Icons.Rounded.ShoppingBag,
                         onClick = { onAddToCart(quantity) },
                     )

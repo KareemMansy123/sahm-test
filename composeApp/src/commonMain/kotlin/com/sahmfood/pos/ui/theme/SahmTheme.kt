@@ -11,6 +11,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import com.sahmfood.pos.presentation.settings.AppLanguage
 import com.sahmfood.pos.presentation.settings.AppSettingsStore
 import com.sahmfood.pos.presentation.settings.AppTheme
+import com.sahmfood.pos.ui.strings.LocalSahmStrings
+import com.sahmfood.pos.ui.strings.stringsFor
 import org.koin.compose.koinInject
 
 @Composable
@@ -30,7 +32,10 @@ fun SahmTheme(
         AppLanguage.English -> LayoutDirection.Ltr
         AppLanguage.Arabic -> LayoutDirection.Rtl
     }
-    CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
+    CompositionLocalProvider(
+        LocalLayoutDirection provides layoutDirection,
+        LocalSahmStrings provides stringsFor(language),
+    ) {
         MaterialTheme(
             colorScheme = if (isDark) SahmDarkColors else SahmLightColors,
             typography = SahmTypography,

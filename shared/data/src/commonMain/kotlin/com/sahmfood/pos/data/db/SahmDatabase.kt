@@ -31,7 +31,7 @@ import com.sahmfood.pos.data.db.entities.SyncQueueEntity
         ChatMessageEntity::class,
         SettingsEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 @ConstructedBy(SahmDatabaseConstructor::class)

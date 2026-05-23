@@ -36,11 +36,14 @@ import com.sahmfood.pos.ui.theme.SahmSpacing
  */
 @Composable
 fun PlazaAddressHeader(
-    label: String = "Cashier",
-    value: String = "Sahm Food · Counter 1",
+    label: String? = null,
+    value: String? = null,
     onClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
+    val resolvedLabel = label ?: strings.homeCashierLabel
+    val resolvedValue = value ?: strings.homeCashierValue
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -64,12 +67,12 @@ fun PlazaAddressHeader(
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                label,
+                resolvedLabel,
                 style = MaterialTheme.typography.labelMedium,
                 color = Neutral80,
             )
             Text(
-                value,
+                resolvedValue,
                 style = MaterialTheme.typography.titleSmall,
                 color = Neutral95,
                 maxLines = 1,

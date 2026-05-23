@@ -38,10 +38,12 @@ import com.sahmfood.pos.ui.theme.SahmSpacing
 fun PlazaSearchBar(
     value: String,
     onValueChange: (String) -> Unit,
-    placeholder: String = "Search menu, items, categories…",
+    placeholder: String? = null,
     onScanClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    val resolvedPlaceholder = placeholder
+        ?: com.sahmfood.pos.ui.strings.LocalSahmStrings.current.homeSearchPlaceholder
     Surface(
         modifier = modifier
             .fillMaxWidth()
@@ -72,7 +74,7 @@ fun PlazaSearchBar(
             ) {
                 if (value.isEmpty()) {
                     Text(
-                        placeholder,
+                        resolvedPlaceholder,
                         style = MaterialTheme.typography.bodyMedium,
                         color = Neutral60,
                     )

@@ -69,6 +69,7 @@ fun ReceiptScreen(
     onTrackOrder: () -> Unit = {},
 ) {
     val state by store.state.collectAsState()
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
     val scroll = rememberScrollState()
     var animationStarted by remember { mutableStateOf(false) }
 
@@ -126,7 +127,7 @@ fun ReceiptScreen(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            "Payment Successful",
+                            strings.receiptPaymentSuccessful,
                             style = MaterialTheme.typography.headlineSmall.copy(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 24.sp,
@@ -136,7 +137,7 @@ fun ReceiptScreen(
                         Spacer(Modifier.height(SahmSpacing.xs))
                         state.completedOrder?.let { order ->
                             Text(
-                                "Order #${order.id.takeLast(6).uppercase()}",
+                                strings.receiptOrderNumberPrefix + order.id.takeLast(6).uppercase(),
                                 style = MaterialTheme.typography.titleMedium.copy(fontSize = 15.sp),
                                 color = Color.White.copy(alpha = 0.92f),
                             )
@@ -175,7 +176,7 @@ fun ReceiptScreen(
                 verticalArrangement = Arrangement.spacedBy(SahmSpacing.sm),
             ) {
                 PlazaPrimaryButton(
-                    text = "Track Order",
+                    text = strings.receiptTrackOrder,
                     onClick = onTrackOrder,
                     leadingIcon = Icons.Rounded.Visibility,
                 )
@@ -184,13 +185,13 @@ fun ReceiptScreen(
                     horizontalArrangement = Arrangement.spacedBy(SahmSpacing.sm),
                 ) {
                     OutlinedAction(
-                        text = "Reprint",
+                        text = strings.receiptReprint,
                         icon = Icons.Rounded.Print,
                         onClick = { store.dispatch(CheckoutIntent.PrintReceipt) },
                         modifier = Modifier.weight(1f),
                     )
                     OutlinedAction(
-                        text = "New Order",
+                        text = strings.receiptNewOrder,
                         icon = Icons.Rounded.Add,
                         onClick = onNewOrder,
                         modifier = Modifier.weight(1f),

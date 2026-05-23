@@ -85,8 +85,9 @@ private val mockRegisters = listOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SwitchRegisterScreen(onBack: () -> Unit) {
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
     var selected by remember { mutableStateOf("R001") }
-    SettingsScaffold(title = "Switch Register", onBack = onBack) {
+    SettingsScaffold(title = strings.switchRegisterTitle, onBack = onBack) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(SahmSpacing.lg),
@@ -150,7 +151,7 @@ fun SwitchRegisterScreen(onBack: () -> Unit) {
                                 )
                                 Spacer(Modifier.width(6.dp))
                                 Text(
-                                    if (reg.online) "Online" else "Offline",
+                                    if (reg.online) strings.switchRegisterOnline else strings.switchRegisterOffline,
                                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
                                     color = if (reg.online) SahmSuccess else Neutral60,
                                 )
@@ -159,7 +160,7 @@ fun SwitchRegisterScreen(onBack: () -> Unit) {
                         if (selected == reg.id) {
                             Icon(
                                 Icons.Rounded.CheckCircle,
-                                contentDescription = "Active",
+                                contentDescription = null,
                                 tint = BrandPrimary,
                                 modifier = Modifier.size(22.dp),
                             )
@@ -176,11 +177,12 @@ fun SwitchRegisterScreen(onBack: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrinterSettingsScreen(onBack: () -> Unit) {
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
     var autoPrint by remember { mutableStateOf(true) }
     var printLogo by remember { mutableStateOf(true) }
     var printCustomerCopy by remember { mutableStateOf(false) }
 
-    SettingsScaffold(title = "Printer Settings", onBack = onBack) {
+    SettingsScaffold(title = strings.printerTitle, onBack = onBack) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -223,7 +225,7 @@ fun PrinterSettingsScreen(onBack: () -> Unit) {
                                 )
                                 .padding(horizontal = 8.dp, vertical = 4.dp),
                         ) {
-                            Text("Connected",
+                            Text(strings.printerConnected,
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontWeight = FontWeight.SemiBold, fontSize = 10.sp),
                                 color = SahmSuccess)
@@ -232,27 +234,27 @@ fun PrinterSettingsScreen(onBack: () -> Unit) {
                 }
             }
 
-            SectionLabel("Available Printers")
+            SectionLabel(strings.printerAvailable)
             PrinterRow(Icons.Rounded.Wifi, "Star TSP-100", "192.168.1.42", selected = true)
             PrinterRow(Icons.Rounded.Bluetooth, "Epson TM-T20III", "BT · paired")
             PrinterRow(Icons.Rounded.Usb, "Citizen CT-S310", "USB · /dev/ttyUSB0")
 
-            SectionLabel("Print Options")
+            SectionLabel(strings.printerPrintOptions)
             ToggleRow(
-                label = "Auto-print on payment",
-                description = "Receipt prints automatically after each sale",
+                label = strings.printerAutoPrint,
+                description = strings.printerAutoPrintDesc,
                 checked = autoPrint,
                 onChange = { autoPrint = it },
             )
             ToggleRow(
-                label = "Include logo on receipt",
-                description = "Print Sahm Food logo header",
+                label = strings.printerIncludeLogo,
+                description = strings.printerIncludeLogoDesc,
                 checked = printLogo,
                 onChange = { printLogo = it },
             )
             ToggleRow(
-                label = "Print customer copy",
-                description = "Second receipt for the customer",
+                label = strings.printerCustomerCopy,
+                description = strings.printerCustomerCopyDesc,
                 checked = printCustomerCopy,
                 onChange = { printCustomerCopy = it },
             )
@@ -273,7 +275,7 @@ fun PrinterSettingsScreen(onBack: () -> Unit) {
                     Icon(Icons.Rounded.Print, contentDescription = null,
                         tint = BrandPrimary, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(SahmSpacing.sm))
-                    Text("Print Test Receipt",
+                    Text(strings.printerTestReceipt,
                         style = MaterialTheme.typography.titleSmall.copy(
                             fontWeight = FontWeight.SemiBold, fontSize = 14.sp),
                         color = BrandPrimary)
@@ -288,13 +290,14 @@ fun PrinterSettingsScreen(onBack: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PreferencesScreen(onBack: () -> Unit) {
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
     var soundEnabled by remember { mutableStateOf(true) }
     var hapticEnabled by remember { mutableStateOf(true) }
     var confirmDelete by remember { mutableStateOf(true) }
     var showStockWarnings by remember { mutableStateOf(true) }
     var autoLogout by remember { mutableStateOf(false) }
 
-    SettingsScaffold(title = "Preferences", onBack = onBack) {
+    SettingsScaffold(title = strings.preferencesTitle, onBack = onBack) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -302,47 +305,47 @@ fun PreferencesScreen(onBack: () -> Unit) {
                 .padding(SahmSpacing.lg),
             verticalArrangement = Arrangement.spacedBy(SahmSpacing.sm),
         ) {
-            SectionLabel("Interaction")
+            SectionLabel(strings.preferencesInteraction)
             ToggleRow(
-                label = "Sound feedback",
-                description = "Play tap and success sounds",
+                label = strings.preferencesSoundFeedback,
+                description = strings.preferencesSoundFeedbackDesc,
                 checked = soundEnabled,
                 onChange = { soundEnabled = it },
             )
             ToggleRow(
-                label = "Haptic feedback",
-                description = "Vibrate on key actions",
+                label = strings.preferencesHaptic,
+                description = strings.preferencesHapticDesc,
                 checked = hapticEnabled,
                 onChange = { hapticEnabled = it },
             )
 
-            SectionLabel("Safety")
+            SectionLabel(strings.preferencesSafety)
             ToggleRow(
-                label = "Confirm before deleting cart items",
-                description = "Show a confirmation dialog",
+                label = strings.preferencesConfirmDelete,
+                description = strings.preferencesConfirmDeleteDesc,
                 checked = confirmDelete,
                 onChange = { confirmDelete = it },
             )
             ToggleRow(
-                label = "Show stock warnings",
-                description = "Alert when an item is low on inventory",
+                label = strings.preferencesStockWarnings,
+                description = strings.preferencesStockWarningsDesc,
                 checked = showStockWarnings,
                 onChange = { showStockWarnings = it },
             )
 
-            SectionLabel("Session")
+            SectionLabel(strings.preferencesSession)
             ToggleRow(
-                label = "Auto end shift after 12 hours",
-                description = "Force log-out after a long shift",
+                label = strings.preferencesAutoLogout,
+                description = strings.preferencesAutoLogoutDesc,
                 checked = autoLogout,
                 onChange = { autoLogout = it },
             )
 
-            SectionLabel("Defaults")
-            InfoRowItem("Default payment method", "Cash")
-            InfoRowItem("Default tax rate", "14%")
-            InfoRowItem("Receipt width", "32 chars")
-            InfoRowItem("Currency", "EGP")
+            SectionLabel(strings.preferencesDefaults)
+            InfoRowItem(strings.preferencesDefaultPayment, strings.preferencesDefaultPaymentValue)
+            InfoRowItem(strings.preferencesDefaultTax, strings.preferencesDefaultTaxValue)
+            InfoRowItem(strings.preferencesReceiptWidth, strings.preferencesReceiptWidthValue)
+            InfoRowItem(strings.preferencesCurrency, strings.preferencesCurrencyValue)
         }
     }
 }
@@ -352,7 +355,8 @@ fun PreferencesScreen(onBack: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HelpSupportScreen(onBack: () -> Unit) {
-    SettingsScaffold(title = "Help & Support", onBack = onBack) {
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
+    SettingsScaffold(title = strings.helpTitle, onBack = onBack) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -360,47 +364,47 @@ fun HelpSupportScreen(onBack: () -> Unit) {
                 .padding(SahmSpacing.lg),
             verticalArrangement = Arrangement.spacedBy(SahmSpacing.sm),
         ) {
-            SectionLabel("Get in touch")
+            SectionLabel(strings.helpGetInTouch)
             ContactRow(
                 icon = Icons.Rounded.Phone,
-                label = "Call support",
-                value = "+20 100 555 7777",
+                label = strings.helpCallSupport,
+                value = strings.helpCallSupportValue,
             )
             ContactRow(
                 icon = Icons.Rounded.Mail,
-                label = "Email support",
-                value = "support@sahmfood.com",
+                label = strings.helpEmailSupport,
+                value = strings.helpEmailSupportValue,
             )
             ContactRow(
                 icon = Icons.Rounded.ContactSupport,
-                label = "Live chat",
-                value = "Available 9am–11pm",
+                label = strings.helpLiveChat,
+                value = strings.helpLiveChatValue,
             )
 
-            SectionLabel("Resources")
+            SectionLabel(strings.helpResources)
             LinkRow(
                 icon = Icons.Rounded.MenuBook,
-                label = "Cashier handbook",
-                description = "Step-by-step guide to common workflows",
+                label = strings.helpCashierHandbook,
+                description = strings.helpCashierHandbookDesc,
             )
             LinkRow(
                 icon = Icons.AutoMirrored.Rounded.HelpOutline,
-                label = "Troubleshooting",
-                description = "Printer, network, and sync issues",
+                label = strings.helpTroubleshooting,
+                description = strings.helpTroubleshootingDesc,
             )
 
-            SectionLabel("Frequently asked")
+            SectionLabel(strings.helpFaq)
             FaqRow(
-                question = "How do I refund an order?",
-                answer = "Open the Orders tab, find the order, and tap Refund. A manager PIN may be required.",
+                question = strings.helpFaqRefundQ,
+                answer = strings.helpFaqRefundA,
             )
             FaqRow(
-                question = "Why is the printer offline?",
-                answer = "Check the printer power and the Wi-Fi connection. Re-pair from Profile → Printer Settings.",
+                question = strings.helpFaqPrinterQ,
+                answer = strings.helpFaqPrinterA,
             )
             FaqRow(
-                question = "Can I work offline?",
-                answer = "Yes — all orders sync automatically when the device comes back online.",
+                question = strings.helpFaqOfflineQ,
+                answer = strings.helpFaqOfflineA,
             )
         }
     }
@@ -431,7 +435,7 @@ private fun SettingsScaffold(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Rounded.ArrowBackIos,
-                            contentDescription = "Back",
+                            contentDescription = com.sahmfood.pos.ui.strings.LocalSahmStrings.current.commonBack,
                             tint = Neutral95,
                             modifier = Modifier.size(18.dp),
                         )
@@ -561,7 +565,7 @@ private fun PrinterRow(
                     color = Neutral60)
             }
             if (selected) {
-                Icon(Icons.Rounded.Check, contentDescription = "Selected",
+                Icon(Icons.Rounded.Check, contentDescription = null,
                     tint = BrandPrimary, modifier = Modifier.size(20.dp))
             }
         }

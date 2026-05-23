@@ -54,13 +54,14 @@ fun CartScreen(
     onCheckout: () -> Unit,
 ) {
     val state by store.state.collectAsState()
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
     Scaffold(
         containerColor = Neutral5,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        "Your Order",
+                        strings.cartTitle,
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
@@ -82,7 +83,7 @@ fun CartScreen(
                     if (!state.isCartEmpty) {
                         TextButton(onClick = { store.dispatch(CatalogIntent.ClearCart) }) {
                             Text(
-                                "Clear",
+                                strings.cartClear,
                                 color = BrandPrimary,
                                 style = MaterialTheme.typography.labelLarge.copy(
                                     fontWeight = FontWeight.SemiBold,
@@ -99,9 +100,9 @@ fun CartScreen(
             if (state.isCartEmpty) {
                 PlazaEmptyState(
                     icon = Icons.Rounded.ShoppingBag,
-                    title = "Your cart is empty",
-                    description = "Add items from the menu to start an order.",
-                    ctaLabel = "Browse Menu",
+                    title = strings.cartEmptyTitle,
+                    description = strings.cartEmptyDescription,
+                    ctaLabel = strings.cartEmptyCta,
                     onCta = onBack,
                 )
             } else {
@@ -167,7 +168,7 @@ fun CartScreen(
                                 totals = state.totals,
                                 onCharge = onCheckout,
                                 chargeEnabled = !state.isCartEmpty,
-                                chargeLabel = "Proceed to Checkout",
+                                chargeLabel = strings.cartProceedToCheckout,
                             )
                         }
                     }

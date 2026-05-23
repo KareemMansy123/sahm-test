@@ -71,6 +71,8 @@ fun ProductDetailSheet(
     onDismiss: () -> Unit,
     onAdd: (quantity: Int) -> Unit,
 ) {
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
+    val lang = com.sahmfood.pos.ui.strings.currentLanguageCode()
     var quantity by remember(product.id) { mutableStateOf(1) }
     val total = remember(product, quantity) {
         Money(product.price.amount * quantity, product.price.currency)
@@ -116,7 +118,7 @@ fun ProductDetailSheet(
                         .padding(SahmSpacing.lg)
                 ) {
                     Text(
-                        product.category,
+                        product.localizedCategory(lang),
                         style = MaterialTheme.typography.labelSmall,
                         color = Color.White,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -129,14 +131,16 @@ fun ProductDetailSheet(
                     .fillMaxWidth()
                     .padding(SahmSpacing.xl)
             ) {
-                Text(product.name, style = MaterialTheme.typography.headlineSmall, color = Neutral95)
+                Text(product.localizedName(lang), style = MaterialTheme.typography.headlineSmall, color = Neutral95)
                 Spacer(Modifier.height(SahmSpacing.xs))
                 Text(product.price.toDisplayString(),
                     style = MaterialTheme.typography.displaySmall,
                     color = BrandPrimary)
                 Spacer(Modifier.height(SahmSpacing.md))
                 Text(
-                    product.description.ifBlank { "Freshly prepared. Made to order." },
+                    product.localizedDescription(lang).ifBlank {
+                        strings.productGenericDescriptionFallback(product.localizedCategory(lang))
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                     color = Neutral60
                 )
@@ -184,7 +188,7 @@ fun ProductDetailSheet(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Total", style = MaterialTheme.typography.titleMedium, color = Neutral60)
+                    Text(strings.cartTotal, style = MaterialTheme.typography.titleMedium, color = Neutral60)
                     Text(
                         total.toDisplayString(),
                         style = MaterialTheme.typography.titleLarge,
@@ -222,7 +226,7 @@ fun ProductDetailSheet(
                             )
                             Spacer(Modifier.width(SahmSpacing.sm))
                             Text(
-                                "Add to Order",
+                                strings.productAddToOrderTemplate(quantity.toString()),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = Color.White
                             )

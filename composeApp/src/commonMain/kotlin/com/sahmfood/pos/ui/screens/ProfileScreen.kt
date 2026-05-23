@@ -77,6 +77,7 @@ fun ProfileScreen(
 ) {
     val theme by settings.theme.collectAsState()
     val language by settings.language.collectAsState()
+    val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
 
     var showThemeSheet by remember { mutableStateOf(false) }
     var showLanguageSheet by remember { mutableStateOf(false) }
@@ -111,14 +112,14 @@ fun ProfileScreen(
                 }
                 Spacer(Modifier.size(SahmSpacing.md))
                 Text(
-                    "Kareem · Counter 1",
+                    strings.profileGreeting,
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold, fontSize = 18.sp),
                     color = Color.White,
                 )
                 Spacer(Modifier.size(2.dp))
                 Text(
-                    "Sahm Food · Cairo",
+                    strings.profileSubtitle,
                     style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
                     color = Color.White.copy(alpha = 0.85f),
                 )
@@ -132,52 +133,52 @@ fun ProfileScreen(
             QuickStatCard(
                 modifier = Modifier.weight(1f),
                 icon = Icons.Rounded.Favorite,
-                label = "Favorites",
+                label = strings.profileFavorites,
                 onClick = onOpenFavorites,
             )
             QuickStatCard(
                 modifier = Modifier.weight(1f),
                 icon = Icons.Rounded.AutoAwesome,
-                label = "AI Assistant",
+                label = strings.profileAiAssistant,
                 onClick = onOpenAi,
             )
         }
         Spacer(Modifier.size(SahmSpacing.xl))
 
-        SectionHeading("Account")
-        SettingsRow(Icons.Rounded.SwitchAccount, "Switch register",
+        SectionHeading(strings.profileSectionAccount)
+        SettingsRow(Icons.Rounded.SwitchAccount, strings.profileRowSwitchRegister,
             onClick = onOpenSwitchRegister)
-        SettingsRow(Icons.Rounded.Print, "Printer settings",
+        SettingsRow(Icons.Rounded.Print, strings.profileRowPrinter,
             onClick = onOpenPrinterSettings)
-        SettingsRow(Icons.Rounded.Settings, "Preferences",
+        SettingsRow(Icons.Rounded.Settings, strings.profileRowPreferences,
             onClick = onOpenPreferences)
 
-        SectionHeading("App")
+        SectionHeading(strings.profileSectionApp)
         SettingsRow(
             Icons.Rounded.Language,
-            "Language",
+            strings.profileRowLanguage,
             trailingValue = language.displayName,
             onClick = { showLanguageSheet = true },
         )
         SettingsRow(
             Icons.Rounded.DarkMode,
-            "Theme",
-            trailingValue = theme.displayName(),
+            strings.profileRowTheme,
+            trailingValue = theme.displayName(strings),
             onClick = { showThemeSheet = true },
         )
-        SettingsRow(Icons.Rounded.HelpOutline, "Help & support",
+        SettingsRow(Icons.Rounded.HelpOutline, strings.profileRowHelp,
             onClick = onOpenHelp)
         SettingsRow(
             Icons.Rounded.Info,
-            "About Sahm POS",
-            trailingValue = "v1.0",
+            strings.profileRowAbout,
+            trailingValue = strings.profileAboutVersionSuffix,
             onClick = { showAboutSheet = true },
         )
 
-        SectionHeading("Session")
+        SectionHeading(strings.profileSectionSession)
         SettingsRow(
             icon = Icons.Rounded.Logout,
-            label = "End shift",
+            label = strings.profileRowEndShift,
             tint = SahmError,
             onClick = { /* user opted to leave this unwired */ },
         )
@@ -215,10 +216,10 @@ fun ProfileScreen(
     }
 }
 
-private fun AppTheme.displayName(): String = when (this) {
-    AppTheme.Light -> "Light"
-    AppTheme.Dark -> "Dark"
-    AppTheme.System -> "System"
+private fun AppTheme.displayName(strings: com.sahmfood.pos.ui.strings.SahmStrings): String = when (this) {
+    AppTheme.Light -> strings.themeLight
+    AppTheme.Dark -> strings.themeDark
+    AppTheme.System -> strings.themeSystem
 }
 
 @Composable
