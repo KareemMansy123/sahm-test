@@ -9,6 +9,7 @@ interface OrderRepository {
     suspend fun save(order: Order, items: List<OrderItem>)
     suspend fun updateStatus(orderId: String, status: OrderStatus)
     fun observeHistory(): Flow<List<Order>>
+    suspend fun snapshotHistory(): List<Order>
     suspend fun getById(orderId: String): Order?
     suspend fun getItems(orderId: String): List<OrderItem>
 }

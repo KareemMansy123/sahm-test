@@ -2,7 +2,8 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.sqldelight)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.androidx.room)
 }
 
 kotlin {
@@ -11,7 +12,7 @@ kotlin {
             kotlinOptions { jvmTarget = "17" }
         }
     }
-    jvm()  // JVM target for unit tests of SQLDelight queries on host
+    jvm()
     listOf(iosX64(), iosArm64(), iosSimulatorArm64()).forEach { target ->
         target.binaries.framework {
             baseName = "Data"
@@ -25,29 +26,17 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
-            implementation(libs.sqldelight.runtime)
-            implementation(libs.sqldelight.coroutines)
             implementation(libs.koin.core)
+            implementation(libs.androidx.room.runtime)
+            implementation(libs.androidx.sqlite.bundled)
         }
         androidMain.dependencies {
-            implementation(libs.sqldelight.android)
             implementation(libs.koin.android)
-        }
-        iosMain.dependencies {
-            implementation(libs.sqldelight.native)
-        }
-        jvmMain.dependencies {
-            implementation(libs.sqldelight.jvm)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.turbine)
-        }
-        val jvmTest by getting {
-            dependencies {
-                implementation(libs.sqldelight.jvm)
-            }
         }
     }
 }
@@ -64,10 +53,14 @@ android {
     }
 }
 
-sqldelight {
-    databases {
-        create("SahmPosDatabase") {
-            packageName.set("com.sahmfood.pos.data.db")
-        }
-    }
+room {
+    schemaDirectory("$projectDir/schemas")
+}
+
+dependencies {
+    add("kspAndroid", libs.androidx.room.compiler)
+    add("kspJvm", libs.androidx.room.compiler)
+    add("kspIosX64", libs.androidx.room.compiler)
+    add("kspIosArm64", libs.androidx.room.compiler)
+    add("kspIosSimulatorArm64", libs.androidx.room.compiler)
 }

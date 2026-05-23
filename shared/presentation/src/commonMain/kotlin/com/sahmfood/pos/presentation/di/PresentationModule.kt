@@ -10,18 +10,46 @@ import com.sahmfood.pos.presentation.settings.AppSettingsStore
 import org.koin.dsl.module
 
 val presentationModule = module {
-    factory { CatalogStore(get(), get(), get(), get(), get()) }
+    factory {
+        CatalogStore(
+            getProductCatalog = get(),
+            observeCart = get(),
+            setCartItemQuantity = get(),
+            removeCartItem = get(),
+            clearCart = get(),
+            snapshotCart = get(),
+            calculateOrderTotals = get(),
+        )
+    }
     factory {
         CheckoutStore(
             checkoutOrder = get(),
             printReceipt = get(),
             orderRepository = get(),
-            renderReceiptText = { order, items -> renderReceiptText(order, items) }
+            renderReceiptText = { order, items -> renderReceiptText(order, items) },
         )
     }
     factory { HistoryStore(get(), get()) }
-    // Singles: state shared across tabs / re-entry
+
+    // Singles — state shared across tabs / re-entry
     single { FavoritesStore(get(), get(), get()) }
-    single { AiChatStore(get(), get(), get()) }
-    single { AppSettingsStore() }
+    single {
+        AiChatStore(
+            observeChatMessages = get(),
+            saveChatMessage = get(),
+            clearChatHistory = get(),
+            getTodayRevenueSummary = get(),
+            countPendingSyncOrders = get(),
+            rankItemsByVolume = get(),
+            clock = get(),
+            ids = get(),
+        )
+    }
+    single {
+        AppSettingsStore(
+            observePreferences = get(),
+            updateTheme = get(),
+            updateLanguage = get(),
+        )
+    }
 }

@@ -1,9 +1,12 @@
 package com.sahmfood.pos.data.repositories
 
-import com.sahmfood.pos.data.db.PosOrder as PosOrderRow
-import com.sahmfood.pos.data.db.PosOrderItem as PosOrderItemRow
-import com.sahmfood.pos.data.db.Product as ProductRow
-import com.sahmfood.pos.data.db.SyncQueueEntry as SyncRow
+import com.sahmfood.pos.data.db.entities.CartItemEntity
+import com.sahmfood.pos.data.db.entities.ChatMessageEntity
+import com.sahmfood.pos.data.db.entities.FavoriteEntity
+import com.sahmfood.pos.data.db.entities.OrderEntity
+import com.sahmfood.pos.data.db.entities.OrderItemEntity
+import com.sahmfood.pos.data.db.entities.ProductEntity
+import com.sahmfood.pos.data.db.entities.SyncQueueEntity
 import com.sahmfood.pos.domain.entities.Money
 import com.sahmfood.pos.domain.entities.Order
 import com.sahmfood.pos.domain.entities.OrderItem
@@ -14,46 +17,120 @@ import com.sahmfood.pos.domain.entities.SyncOpType
 import com.sahmfood.pos.domain.entities.SyncQueueEntry
 import com.sahmfood.pos.domain.entities.SyncStatus
 
-internal fun ProductRow.toDomain(): Product = Product(
+internal fun ProductEntity.toDomain(): Product = Product(
     id = id,
     name = name,
-    price = Money(price_amount, currency),
+    price = Money(priceAmount, currency),
     category = category,
-    imageUrl = image_url,
+    imageUrl = imageUrl,
     description = description,
-    isAvailable = is_available == 1L
+    isAvailable = isAvailable,
 )
 
-internal fun PosOrderRow.toDomain(): Order = Order(
+internal fun Product.toEntity(): ProductEntity = ProductEntity(
+    id = id,
+    name = name,
+    priceAmount = price.amount,
+    currency = price.currency,
+    category = category,
+    imageUrl = imageUrl,
+    description = description,
+    isAvailable = isAvailable,
+)
+
+internal fun OrderEntity.toDomain(): Order = Order(
     id = id,
     subtotal = Money(subtotal, currency),
-    tax = Money(tax_amount, currency),
+    tax = Money(taxAmount, currency),
     discount = Money(discount, currency),
-    grandTotal = Money(grand_total, currency),
+    grandTotal = Money(grandTotal, currency),
     status = OrderStatus.valueOf(status),
-    paymentMethod = PaymentMethod.valueOf(payment_method),
+    paymentMethod = PaymentMethod.valueOf(paymentMethod),
     tendered = Money(tendered, currency),
-    change = Money(change_amount, currency),
-    createdAt = created_at,
-    updatedAt = updated_at
+    change = Money(changeAmount, currency),
+    createdAt = createdAt,
+    updatedAt = updatedAt,
 )
 
-internal fun PosOrderItemRow.toDomain(): OrderItem = OrderItem(
+internal fun Order.toEntity(): OrderEntity = OrderEntity(
     id = id,
-    orderId = order_id,
-    productId = product_id,
-    productName = product_name,
-    quantity = quantity.toInt(),
-    unitPrice = Money(unit_price, currency),
-    lineTotal = Money(line_total, currency)
+    subtotal = subtotal.amount,
+    taxAmount = tax.amount,
+    discount = discount.amount,
+    grandTotal = grandTotal.amount,
+    currency = subtotal.currency,
+    status = status.name,
+    paymentMethod = paymentMethod.name,
+    tendered = tendered.amount,
+    changeAmount = change.amount,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
 )
 
-internal fun SyncRow.toDomain(): SyncQueueEntry = SyncQueueEntry(
+internal fun OrderItemEntity.toDomain(): OrderItem = OrderItem(
     id = id,
-    opType = SyncOpType.valueOf(op_type),
-    orderId = order_id,
-    payloadJson = payload_json,
-    attempts = attempts.toInt(),
+    orderId = orderId,
+    productId = productId,
+    productName = productName,
+    quantity = quantity,
+    unitPrice = Money(unitPrice, currency),
+    lineTotal = Money(lineTotal, currency),
+)
+
+internal fun OrderItem.toEntity(): OrderItemEntity = OrderItemEntity(
+    id = id,
+    orderId = orderId,
+    productId = productId,
+    productName = productName,
+    quantity = quantity,
+    unitPrice = unitPrice.amount,
+    lineTotal = lineTotal.amount,
+    currency = unitPrice.currency,
+)
+
+internal fun SyncQueueEntity.toDomain(): SyncQueueEntry = SyncQueueEntry(
+    id = id,
+    opType = SyncOpType.valueOf(opType),
+    orderId = orderId,
+    payloadJson = payloadJson,
+    attempts = attempts,
     status = SyncStatus.valueOf(status),
-    createdAt = created_at
+    createdAt = createdAt,
 )
+
+internal fun SyncQueueEntry.toEntity(): SyncQueueEntity = SyncQueueEntity(
+    id = id,
+    opType = opType.name,
+    orderId = orderId,
+    payloadJson = payloadJson,
+    attempts = attempts,
+    status = status.name,
+    createdAt = createdAt,
+)
+
+internal fun FavoriteEntity.toProductId(): String = productId
+
+internal fun ChatMessageEntity.toDomain():
+    com.sahmfood.pos.domain.entities.ChatMessage =
+    com.sahmfood.pos.domain.entities.ChatMessage(
+        id = id,
+        role = com.sahmfood.pos.domain.entities.ChatRole.valueOf(role),
+        content = content,
+        timestampMs = timestampMs,
+    )
+
+internal fun com.sahmfood.pos.domain.entities.ChatMessage.toEntity(): ChatMessageEntity =
+    ChatMessageEntity(
+        id = id,
+        role = role.name,
+        content = content,
+        timestampMs = timestampMs,
+    )
+
+internal fun CartItemEntity.toDomain():
+    com.sahmfood.pos.domain.entities.PersistedCartLine =
+    com.sahmfood.pos.domain.entities.PersistedCartLine(
+        productId = productId,
+        quantity = quantity,
+        addedAt = addedAt,
+    )

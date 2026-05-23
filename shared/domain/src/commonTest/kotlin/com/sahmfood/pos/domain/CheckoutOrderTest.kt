@@ -30,6 +30,7 @@ class CheckoutOrderTest {
         }
         override suspend fun updateStatus(orderId: String, status: OrderStatus) {}
         override fun observeHistory(): Flow<List<Order>> = flowOf(saved.map { it.first })
+        override suspend fun snapshotHistory(): List<Order> = saved.map { it.first }
         override suspend fun getById(orderId: String): Order? = saved.firstOrNull { it.first.id == orderId }?.first
         override suspend fun getItems(orderId: String): List<OrderItem> =
             saved.firstOrNull { it.first.id == orderId }?.second ?: emptyList()

@@ -14,9 +14,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.sahmfood.pos.data.seed.CatalogSeed
+import com.sahmfood.pos.data.seed.MenuSeedData
 import com.sahmfood.pos.data.sync.SyncWorker
 import com.sahmfood.pos.domain.entities.Product
+import com.sahmfood.pos.domain.usecases.SeedCatalogIfNeeded
 import com.sahmfood.pos.presentation.ai.AiChatStore
 import com.sahmfood.pos.presentation.catalog.CatalogEffect
 import com.sahmfood.pos.presentation.catalog.CatalogIntent
@@ -64,13 +65,13 @@ fun App() {
         val favoritesStore: FavoritesStore = koinInject()
         val aiChatStore: AiChatStore = koinInject()
         val settings: AppSettingsStore = koinInject()
-        val catalogSeed: CatalogSeed = koinInject()
+        val seedCatalogIfNeeded: SeedCatalogIfNeeded = koinInject()
         val syncWorker: SyncWorker = koinInject()
 
         var route by remember { mutableStateOf<Route>(Route.Main) }
 
         LaunchedEffect(Unit) {
-            catalogSeed.seedIfEmpty()
+            seedCatalogIfNeeded(MenuSeedData.MENU)
             syncWorker.start()
         }
 
