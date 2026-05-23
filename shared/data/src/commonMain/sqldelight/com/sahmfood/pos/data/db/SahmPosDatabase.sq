@@ -1,0 +1,115 @@
+CREATE TABLE Product (
+    id           TEXT    NOT NULL PRIMARY KEY,
+    name         TEXT    NOT NULL,
+    price_amount INTEGER NOT NULL,
+    currency     TEXT    NOT NULL DEFAULT 'EGP',
+    category     TEXT    NOT NULL,
+    image_url    TEXT,
+    description  TEXT    NOT NULL DEFAULT '',
+    is_available INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE TABLE PosOrder (
+    id            TEXT    NOT NULL PRIMARY KEY,
+    subtotal      INTEGER NOT NULL,
+    tax_amount    INTEGER NOT NULL,
+    discount      INTEGER NOT NULL DEFAULT 0,
+    grand_total   INTEGER NOT NULL,
+    currency      TEXT    NOT NULL DEFAULT 'EGP',
+    status        TEXT    NOT NULL,
+    payment_method TEXT   NOT NULL,
+    tendered      INTEGER NOT NULL,
+    change_amount INTEGER NOT NULL,
+    created_at    INTEGER NOT NULL,
+    updated_at    INTEGER NOT NULL
+);
+
+CREATE TABLE PosOrderItem (
+    id           TEXT    NOT NULL PRIMARY KEY,
+    order_id     TEXT    NOT NULL,
+    product_id   TEXT    NOT NULL,
+    product_name TEXT    NOT NULL,
+    quantity     INTEGER NOT NULL,
+    unit_price   INTEGER NOT NULL,
+    line_total   INTEGER NOT NULL,
+    currency     TEXT    NOT NULL DEFAULT 'EGP',
+    FOREIGN KEY (order_id) REFERENCES PosOrder(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_order_items_order_id ON PosOrderItem(order_id);
+CREATE INDEX idx_order_status ON PosOrder(status);
+CREATE INDEX idx_order_created_at ON PosOrder(created_at);
+
+CREATE TABLE SyncQueueEntry (
+    id           TEXT    NOT NULL PRIMARY KEY,
+    op_type      TEXT    NOT NULL,
+    order_id     TEXT    NOT NULL,
+    payload_json TEXT    NOT NULL,
+    attempts     INTEGER NOT NULL DEFAULT 0,
+    status       TEXT    NOT NULL DEFAULT 'PENDING',
+    created_at   INTEGER NOT NULL
+);
+
+CREATE INDEX idx_sync_status ON SyncQueueEntry(status);
+
+-- ============================================================================
+-- Product queries
+-- ============================================================================
+
+selectAllProducts:
+SELECT * FROM Product WHERE is_available = 1 ORDER BY category, name;
+
+selectProductById:
+SELECT * FROM Product WHERE id = :id;
+
+upsertProduct:
+INSERT OR REPLACE INTO Product (id, name, price_amount, currency, category, image_url, description, is_available)
+VALUES (:id, :name, :price_amount, :currency, :category, :image_url, :description, :is_available);
+
+countProducts:
+SELECT COUNT(*) FROM Product;
+
+-- ============================================================================
+-- Order queries
+-- ============================================================================
+
+insertOrder:
+INSERT INTO PosOrder (id, subtotal, tax_amount, discount, grand_total, currency, status, payment_method, tendered, change_amount, created_at, updated_at)
+VALUES (:id, :subtotal, :tax_amount, :discount, :grand_total, :currency, :status, :payment_method, :tendered, :change_amount, :created_at, :updated_at);
+
+updateOrderStatus:
+UPDATE PosOrder SET status = :status, updated_at = :updated_at WHERE id = :id;
+
+selectOrderById:
+SELECT * FROM PosOrder WHERE id = :id;
+
+selectOrderHistory:
+SELECT * FROM PosOrder ORDER BY created_at DESC;
+
+-- ============================================================================
+-- Order item queries
+-- ============================================================================
+
+insertOrderItem:
+INSERT INTO PosOrderItem (id, order_id, product_id, product_name, quantity, unit_price, line_total, currency)
+VALUES (:id, :order_id, :product_id, :product_name, :quantity, :unit_price, :line_total, :currency);
+
+selectItemsByOrderId:
+SELECT * FROM PosOrderItem WHERE order_id = :order_id;
+
+-- ============================================================================
+-- Sync queue queries
+-- ============================================================================
+
+insertSyncEntry:
+INSERT INTO SyncQueueEntry (id, op_type, order_id, payload_json, attempts, status, created_at)
+VALUES (:id, :op_type, :order_id, :payload_json, :attempts, :status, :created_at);
+
+selectPendingSync:
+SELECT * FROM SyncQueueEntry WHERE status = 'PENDING' ORDER BY created_at ASC;
+
+selectAllSync:
+SELECT * FROM SyncQueueEntry ORDER BY created_at DESC;
+
+updateSyncStatus:
+UPDATE SyncQueueEntry SET status = :status, attempts = :attempts WHERE id = :id;
