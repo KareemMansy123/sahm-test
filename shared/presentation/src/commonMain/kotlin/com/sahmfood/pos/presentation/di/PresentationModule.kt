@@ -48,6 +48,7 @@ val presentationModule = module {
     }
     single {
         AppSettingsStore(
+            preferencesRepository = get(),
             observePreferences = get(),
             updateTheme = get(),
             updateLanguage = get(),

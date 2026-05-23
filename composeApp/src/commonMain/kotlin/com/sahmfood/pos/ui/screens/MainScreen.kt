@@ -107,10 +107,12 @@ fun MainScreen(
                             scope.launch { pagerState.animateScrollToPage(0) }
                         },
                     )
-                    "menu" -> MenuTabBody(
+                    "menu" -> CategoriesTabBody(
                         catalogStore = catalogStore,
-                        favoritesStore = favoritesStore,
-                        onOpenProduct = onOpenProduct,
+                        onCategoryPicked = { category ->
+                            catalogStore.dispatch(CatalogIntent.SelectCategory(category))
+                            scope.launch { pagerState.animateScrollToPage(0) }
+                        },
                     )
                     "orders" -> OrdersTabBody(historyStore = historyStore)
                     "profile" -> ProfileScreen(
@@ -158,14 +160,17 @@ private fun CartTabBody(
     )
 }
 
+/**
+ * The Categories tab — a grid of large pastel category cards.
+ * Tapping a category applies the filter on the catalog store and
+ * navigates back to the Home tab to show the filtered products.
+ */
 @Composable
-private fun MenuTabBody(
+private fun CategoriesTabBody(
     catalogStore: CatalogStore,
-    favoritesStore: FavoritesStore,
-    onOpenProduct: (Product) -> Unit,
+    onCategoryPicked: (String?) -> Unit,
 ) {
     val state by catalogStore.state.collectAsState()
-    val favState by favoritesStore.state.collectAsState()
     BoxWithConstraints(modifier = Modifier.fillMaxSize().background(Neutral5)) {
         val columns = when {
             maxWidth >= 840.dp -> 4
@@ -175,19 +180,28 @@ private fun MenuTabBody(
         Column(modifier = Modifier.fillMaxSize()) {
             Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
             Text(
-                "All Items",
+                "Categories",
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold, fontSize = 22.sp),
                 color = Neutral95,
                 modifier = Modifier.padding(SahmSpacing.lg),
             )
-            if (state.products.isEmpty()) {
+            Text(
+                "Tap a category to filter the menu",
+                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp),
+                color = com.sahmfood.pos.ui.theme.Neutral60,
+                modifier = Modifier.padding(horizontal = SahmSpacing.lg),
+            )
+            Spacer(Modifier.padding(top = SahmSpacing.md))
+            if (state.categories.isEmpty()) {
                 PlazaEmptyState(
                     icon = Icons.Rounded.ShoppingBag,
-                    title = "No items",
-                    description = "Catalog is empty.",
+                    title = "No categories",
+                    description = "The menu is empty.",
                 )
             } else {
+                val cards = listOf<Pair<String?, Int>>(null to -1) +
+                    state.categories.mapIndexed { i, c -> c to i }
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(columns),
                     contentPadding = PaddingValues(
@@ -197,15 +211,14 @@ private fun MenuTabBody(
                     horizontalArrangement = Arrangement.spacedBy(SahmSpacing.md),
                     verticalArrangement = Arrangement.spacedBy(SahmSpacing.md),
                 ) {
-                    items(state.products, key = { it.id }) { product ->
-                        ProductCard(
-                            product = product,
-                            isFavorite = product.id in favState.favoriteIds,
-                            onCardTap = { onOpenProduct(product) },
-                            onAdd = { catalogStore.dispatch(CatalogIntent.AddToCart(product)) },
-                            onToggleFavorite = {
-                                favoritesStore.dispatch(FavoritesIntent.Toggle(product.id))
-                            },
+                    items(cards, key = { (cat, _) -> cat ?: "_all" }) { (category, idx) ->
+                        com.sahmfood.pos.ui.components.CategoryGridCard(
+                            label = category ?: "All Items",
+                            category = category,
+                            pastelIndex = if (idx < 0) state.categories.size else idx,
+                            itemCount = if (category == null) state.products.size
+                                        else state.products.count { it.category == category },
+                            onClick = { onCategoryPicked(category) },
                         )
                     }
                 }
