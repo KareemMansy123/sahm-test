@@ -1,5 +1,6 @@
 package com.sahmfood.pos.ui.screens
 
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -105,7 +106,7 @@ fun MainScreen(
                         catalogStore = catalogStore,
                         onCheckout = onOpenCheckout,
                         onBrowseMenu = {
-                            scope.launch { pagerState.animateScrollToPage(0) }
+                            scope.launch { pagerState.animateScrollToPage(0, animationSpec = tween(420)) }
                         },
                     )
                     "menu" -> CategoriesTabBody(
@@ -130,7 +131,7 @@ fun MainScreen(
                 onSelect = { key ->
                     val idx = PlazaBottomTabs.indexOfFirst { it.key == key }
                     if (idx >= 0) {
-                        scope.launch { pagerState.animateScrollToPage(idx) }
+                        scope.launch { pagerState.animateScrollToPage(idx, animationSpec = tween(420)) }
                     }
                 },
             )
