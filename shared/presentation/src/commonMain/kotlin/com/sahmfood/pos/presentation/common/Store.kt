@@ -1,7 +1,7 @@
 package com.sahmfood.pos.presentation.common
 
+import com.sahmfood.pos.domain.services.DispatcherProvider
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -14,9 +14,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
- * MVI store contract. State is the single source of truth, Intents are the
- * only way to mutate it, Effects are one-shot fire-and-forget signals to the
- * UI (navigate, toast, trigger print).
+ * MVI store contract.
+ *
+ * Two ways to implement:
+ *  1. Extend [BaseStore] and override `handle(intent)` (legacy stores).
+ *  2. Extend [ReducerStore], pass in a pure [Reducer] and a list of
+ *     [Middleware]s (new, preferred — separates pure state logic from
+ *     effectful logic and makes both testable in isolation).
  */
 interface Store<S : Any, I : Any, E : Any> {
     val state: StateFlow<S>
@@ -26,15 +30,13 @@ interface Store<S : Any, I : Any, E : Any> {
 }
 
 /**
- * Reusable base for stores. Each store owns a SupervisorJob scope so a
- * single coroutine failure does not cancel siblings. The scope is cancelled
- * via [cancel], typically from the Android ViewModel.onCleared() or a
- * DisposableEffect's onDispose on iOS.
+ * Legacy base. New stores should prefer [ReducerStore].
  */
 abstract class BaseStore<S : Any, I : Any, E : Any>(
     initialState: S,
+    dispatchers: DispatcherProvider? = null,
     protected val scope: CoroutineScope =
-        CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        CoroutineScope(SupervisorJob() + (dispatchers?.default ?: kotlinx.coroutines.Dispatchers.Default)),
 ) : Store<S, I, E> {
 
     private val _state = MutableStateFlow(initialState)
@@ -55,6 +57,62 @@ abstract class BaseStore<S : Any, I : Any, E : Any>(
 
     protected suspend fun emitEffect(effect: E) {
         _effects.emit(effect)
+    }
+
+    override fun cancel() {
+        scope.cancel()
+    }
+}
+
+/**
+ * Reducer + Middleware MVI store. Pass a pure [Reducer] for state
+ * transitions and a list of [Middleware]s for side effects.
+ *
+ * Lifecycle:
+ *   dispatch(intent)
+ *     -> state := reducer.reduce(state, intent)
+ *     -> for each middleware: middleware.process(scope, intent)
+ *
+ * Middlewares run sequentially in declaration order on the store's
+ * coroutine scope.
+ */
+abstract class ReducerStore<S : Any, I : Any, E : Any>(
+    initialState: S,
+    private val reducer: Reducer<S, I>,
+    private val middlewares: List<Middleware<S, I, E>> = emptyList(),
+    dispatchers: DispatcherProvider? = null,
+    protected val scope: CoroutineScope =
+        CoroutineScope(SupervisorJob() + (dispatchers?.default ?: kotlinx.coroutines.Dispatchers.Default)),
+) : Store<S, I, E> {
+
+    private val _state = MutableStateFlow(initialState)
+    private val _effects = MutableSharedFlow<E>(extraBufferCapacity = 16)
+
+    override val state: StateFlow<S> = _state.asStateFlow()
+    override val effects: SharedFlow<E> = _effects.asSharedFlow()
+
+    private val middlewareScope = object : MiddlewareScope<S, I, E> {
+        override val state: S get() = _state.value
+        override fun updateState(reducer: (S) -> S) {
+            _state.update(reducer)
+        }
+        override suspend fun emitEffect(effect: E) {
+            _effects.emit(effect)
+        }
+        override fun dispatch(intent: I) {
+            this@ReducerStore.dispatch(intent)
+        }
+    }
+
+    override fun dispatch(intent: I) {
+        // 1) Pure reducer first.
+        _state.update { current -> reducer.reduce(current, intent) }
+        // 2) Then middlewares (async side effects).
+        scope.launch {
+            for (middleware in middlewares) {
+                middleware.process(middlewareScope, intent)
+            }
+        }
     }
 
     override fun cancel() {

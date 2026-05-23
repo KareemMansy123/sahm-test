@@ -1,5 +1,8 @@
 package com.sahmfood.pos.domain.usecases
 
+import com.sahmfood.pos.domain.common.AppError
+import com.sahmfood.pos.domain.common.AppResult
+import com.sahmfood.pos.domain.common.appResultOf
 import com.sahmfood.pos.domain.entities.CartItem
 import com.sahmfood.pos.domain.entities.Money
 import com.sahmfood.pos.domain.entities.Order
@@ -15,75 +18,83 @@ import com.sahmfood.pos.domain.services.AppClock
 import com.sahmfood.pos.domain.services.IdGenerator
 import kotlinx.serialization.json.Json
 
+/**
+ * Saves the order + items + sync queue entry in one logical operation.
+ * Returns an [AppResult]:
+ *   Success(order) on persistence success
+ *   Failure(Validation) on empty cart / insufficient cash
+ *   Failure(Database/Unknown) on a thrown exception inside the repos
+ *
+ * Stores match on the result instead of wrapping the call in try/catch.
+ */
 class CheckoutOrder(
     private val orderRepository: OrderRepository,
     private val syncQueueRepository: SyncQueueRepository,
     private val idGenerator: IdGenerator,
     private val clock: AppClock,
-    private val json: Json = Json { ignoreUnknownKeys = true }
+    private val json: Json = Json { ignoreUnknownKeys = true },
 ) {
     suspend operator fun invoke(
         items: List<CartItem>,
         totals: OrderTotals,
         paymentMethod: PaymentMethod,
-        tendered: Money
-    ): Order {
-        require(items.isNotEmpty()) { "cannot checkout empty cart" }
-        if (paymentMethod == PaymentMethod.CASH) {
-            require(tendered >= totals.grandTotal) {
-                "tendered amount must cover grand total"
+        tendered: Money,
+    ): AppResult<Order> {
+        if (items.isEmpty()) {
+            return AppResult.failure(AppError.Validation("Cannot checkout an empty cart"))
+        }
+        if (paymentMethod == PaymentMethod.CASH && tendered < totals.grandTotal) {
+            return AppResult.failure(
+                AppError.Validation("Tendered amount must cover the grand total")
+            )
+        }
+
+        return appResultOf {
+            val now = clock.nowMillis()
+            val orderId = idGenerator.newId()
+            val change = if (paymentMethod == PaymentMethod.CASH) {
+                tendered - totals.grandTotal
+            } else {
+                Money.ZERO_EGP
             }
-        }
-
-        val now = clock.nowMillis()
-        val orderId = idGenerator.newId()
-        val change = if (paymentMethod == PaymentMethod.CASH) {
-            tendered - totals.grandTotal
-        } else {
-            Money.ZERO_EGP
-        }
-
-        val order = Order(
-            id = orderId,
-            subtotal = totals.subtotal,
-            tax = totals.taxAmount,
-            discount = totals.discount,
-            grandTotal = totals.grandTotal,
-            status = OrderStatus.PAID,
-            paymentMethod = paymentMethod,
-            tendered = tendered,
-            change = change,
-            createdAt = now,
-            updatedAt = now
-        )
-
-        val orderItems = items.map { ci ->
-            OrderItem(
-                id = idGenerator.newId(),
-                orderId = orderId,
-                productId = ci.product.id,
-                productName = ci.product.name,
-                quantity = ci.quantity,
-                unitPrice = ci.unitPrice,
-                lineTotal = ci.lineTotal
+            val order = Order(
+                id = orderId,
+                subtotal = totals.subtotal,
+                tax = totals.taxAmount,
+                discount = totals.discount,
+                grandTotal = totals.grandTotal,
+                status = OrderStatus.PAID,
+                paymentMethod = paymentMethod,
+                tendered = tendered,
+                change = change,
+                createdAt = now,
+                updatedAt = now,
             )
-        }
+            val orderItems = items.map { ci ->
+                OrderItem(
+                    id = idGenerator.newId(),
+                    orderId = orderId,
+                    productId = ci.product.id,
+                    productName = ci.product.name,
+                    quantity = ci.quantity,
+                    unitPrice = ci.unitPrice,
+                    lineTotal = ci.lineTotal,
+                )
+            }
 
-        orderRepository.save(order, orderItems)
+            orderRepository.save(order, orderItems)
 
-        // Outbox: enqueue the order for eventual sync. The worker handles
-        // retries and conflict resolution.
-        val payload = json.encodeToString(Order.serializer(), order)
-        syncQueueRepository.enqueue(
-            SyncQueueEntry(
-                id = idGenerator.newId(),
-                opType = SyncOpType.CREATE_ORDER,
-                orderId = orderId,
-                payloadJson = payload,
-                createdAt = now
+            val payload = json.encodeToString(Order.serializer(), order)
+            syncQueueRepository.enqueue(
+                SyncQueueEntry(
+                    id = idGenerator.newId(),
+                    opType = SyncOpType.CREATE_ORDER,
+                    orderId = orderId,
+                    payloadJson = payload,
+                    createdAt = now,
+                )
             )
-        )
-
-        return order
+            order
+        }
     }
 }

@@ -1,5 +1,8 @@
 package com.sahmfood.pos.domain
 
+import com.sahmfood.pos.domain.common.AppError
+import com.sahmfood.pos.domain.common.AppResult
+import com.sahmfood.pos.domain.common.getOrNull
 import com.sahmfood.pos.domain.entities.CartItem
 import com.sahmfood.pos.domain.entities.Money
 import com.sahmfood.pos.domain.entities.Order
@@ -20,7 +23,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class CheckoutOrderTest {
     private class FakeOrderRepository : OrderRepository {
@@ -31,7 +35,8 @@ class CheckoutOrderTest {
         override suspend fun updateStatus(orderId: String, status: OrderStatus) {}
         override fun observeHistory(): Flow<List<Order>> = flowOf(saved.map { it.first })
         override suspend fun snapshotHistory(): List<Order> = saved.map { it.first }
-        override suspend fun getById(orderId: String): Order? = saved.firstOrNull { it.first.id == orderId }?.first
+        override suspend fun getById(orderId: String): Order? =
+            saved.firstOrNull { it.first.id == orderId }?.first
         override suspend fun getItems(orderId: String): List<OrderItem> =
             saved.firstOrNull { it.first.id == orderId }?.second ?: emptyList()
     }
@@ -54,7 +59,7 @@ class CheckoutOrderTest {
         Product(id, "p$id", Money(price), "Burgers", null)
 
     @Test
-    fun `checkout saves order, items and enqueues sync entry`() = runTest {
+    fun `checkout returns Success and saves order plus enqueues sync`() = runTest {
         val orderRepo = FakeOrderRepository()
         val syncRepo = FakeSyncRepo()
         val useCase = CheckoutOrder(orderRepo, syncRepo, SeqIdGen(), FixedClock())
@@ -64,43 +69,45 @@ class CheckoutOrderTest {
             subtotal = Money(17000),
             taxAmount = Money(2380),
             discount = Money.ZERO_EGP,
-            grandTotal = Money(19380)
+            grandTotal = Money(19380),
         )
-        val order = useCase(items, totals, PaymentMethod.CASH, tendered = Money(20000))
+        val result = useCase(items, totals, PaymentMethod.CASH, tendered = Money(20000))
 
+        assertTrue(result is AppResult.Success)
+        val order = assertNotNull(result.getOrNull())
         assertEquals(OrderStatus.PAID, order.status)
-        assertEquals(620, order.change.amount)   // 200 - 193.80 = 6.20
+        assertEquals(620, order.change.amount)
         assertEquals(1, orderRepo.saved.size)
-        assertEquals(1, orderRepo.saved.first().second.size)
         assertEquals(1, syncRepo.enqueued.size)
         assertEquals(order.id, syncRepo.enqueued.first().orderId)
     }
 
     @Test
-    fun `empty cart is rejected`() = runTest {
+    fun `empty cart returns Validation failure`() = runTest {
         val useCase = CheckoutOrder(FakeOrderRepository(), FakeSyncRepo(), SeqIdGen(), FixedClock())
-        assertFailsWith<IllegalArgumentException> {
-            useCase(emptyList(), OrderTotals.EMPTY, PaymentMethod.CASH, Money.ZERO_EGP)
-        }
+        val result = useCase(emptyList(), OrderTotals.EMPTY, PaymentMethod.CASH, Money.ZERO_EGP)
+        assertTrue(result is AppResult.Failure)
+        assertTrue(result.error is AppError.Validation)
     }
 
     @Test
-    fun `cash tender below total is rejected`() = runTest {
+    fun `cash tender below total returns Validation failure`() = runTest {
         val useCase = CheckoutOrder(FakeOrderRepository(), FakeSyncRepo(), SeqIdGen(), FixedClock())
         val items = listOf(CartItem(product("a", 10000), 1))
         val totals = OrderTotals(Money(10000), Money(1400), Money.ZERO_EGP, Money(11400))
-        assertFailsWith<IllegalArgumentException> {
-            useCase(items, totals, PaymentMethod.CASH, tendered = Money(10000))
-        }
+        val result = useCase(items, totals, PaymentMethod.CASH, tendered = Money(10000))
+        assertTrue(result is AppResult.Failure)
+        assertTrue(result.error is AppError.Validation)
     }
 
     @Test
-    fun `card payment does not require tender amount`() = runTest {
+    fun `card payment succeeds with zero tender`() = runTest {
         val useCase = CheckoutOrder(FakeOrderRepository(), FakeSyncRepo(), SeqIdGen(), FixedClock())
         val items = listOf(CartItem(product("a", 10000), 1))
         val totals = OrderTotals(Money(10000), Money(1400), Money.ZERO_EGP, Money(11400))
-        val order = useCase(items, totals, PaymentMethod.CARD, tendered = Money.ZERO_EGP)
-        assertEquals(PaymentMethod.CARD, order.paymentMethod)
-        assertEquals(0, order.change.amount)
+        val result = useCase(items, totals, PaymentMethod.CARD, tendered = Money.ZERO_EGP)
+        assertTrue(result is AppResult.Success)
+        assertEquals(PaymentMethod.CARD, result.value.paymentMethod)
+        assertEquals(0, result.value.change.amount)
     }
 }

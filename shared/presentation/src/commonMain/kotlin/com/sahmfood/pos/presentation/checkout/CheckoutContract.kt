@@ -1,7 +1,6 @@
 package com.sahmfood.pos.presentation.checkout
 
 import com.sahmfood.pos.domain.entities.CartItem
-import com.sahmfood.pos.domain.entities.Money
 import com.sahmfood.pos.domain.entities.Order
 import com.sahmfood.pos.domain.entities.OrderItem
 import com.sahmfood.pos.domain.entities.OrderTotals
@@ -17,21 +16,22 @@ data class CheckoutState(
     val printedReceiptText: String? = null,
     val errorMessage: String? = null,
 ) {
-    /**
-     * `canConfirm` is true whenever there is something to charge. We no
-     * longer require the cashier to enter a "tendered" amount — for a
-     * face-to-face restaurant POS, the cashier just confirms the sale
-     * after collecting cash or running a card.
-     */
     val canConfirm: Boolean get() = totals.grandTotal.amount > 0
 }
 
 sealed interface CheckoutIntent {
+    // User intents
     data class Initialize(val items: List<CartItem>, val totals: OrderTotals) : CheckoutIntent
     data class SetPaymentMethod(val method: PaymentMethod) : CheckoutIntent
     data object ConfirmPayment : CheckoutIntent
     data object PrintReceipt : CheckoutIntent
     data object Done : CheckoutIntent
+
+    // Internal intents dispatched by middleware so the pure reducer can
+    // own all state transitions.
+    data class PaymentSucceeded(val order: Order, val items: List<OrderItem>) : CheckoutIntent
+    data class PaymentFailed(val message: String) : CheckoutIntent
+    data class ReceiptRendered(val text: String) : CheckoutIntent
 }
 
 sealed interface CheckoutEffect {

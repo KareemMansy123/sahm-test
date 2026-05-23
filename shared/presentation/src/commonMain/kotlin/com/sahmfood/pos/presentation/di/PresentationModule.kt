@@ -27,6 +27,7 @@ val presentationModule = module {
             printReceipt = get(),
             orderRepository = get(),
             renderReceiptText = { order, items -> renderReceiptText(order, items) },
+            dispatchers = get(),
         )
     }
     factory { HistoryStore(get(), get()) }
