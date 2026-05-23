@@ -6,8 +6,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
-import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Print
+import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -45,28 +46,27 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.sahmfood.pos.presentation.checkout.CheckoutIntent
 import com.sahmfood.pos.presentation.checkout.CheckoutStore
-import com.sahmfood.pos.ui.components.PrimaryGradientButton
+import com.sahmfood.pos.ui.components.PlazaPrimaryButton
 import com.sahmfood.pos.ui.components.ReceiptPreview
-import com.sahmfood.pos.ui.theme.AccentTeal
 import com.sahmfood.pos.ui.theme.BrandPrimary
-import com.sahmfood.pos.ui.theme.BrandPrimaryContainer
-import com.sahmfood.pos.ui.theme.BrandPrimaryDark
 import com.sahmfood.pos.ui.theme.BrandPrimaryLight
 import com.sahmfood.pos.ui.theme.Neutral5
-import com.sahmfood.pos.ui.theme.Neutral60
-import com.sahmfood.pos.ui.theme.Neutral95
+import com.sahmfood.pos.ui.theme.Neutral80
 import com.sahmfood.pos.ui.theme.SahmRadius
 import com.sahmfood.pos.ui.theme.SahmSpacing
+import com.sahmfood.pos.ui.theme.SahmSuccess
 import kotlinx.coroutines.delay
 
 @Composable
 fun ReceiptScreen(
     store: CheckoutStore,
     onNewOrder: () -> Unit,
+    onTrackOrder: () -> Unit = {},
 ) {
     val state by store.state.collectAsState()
     val scroll = rememberScrollState()
@@ -81,59 +81,64 @@ fun ReceiptScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Neutral5)
-            .verticalScroll(scroll)
+            .verticalScroll(scroll),
     ) {
-        // Hero success area — full-bleed gradient
+        // Hero gradient success area
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(320.dp)
+                .height(300.dp)
                 .background(
                     brush = Brush.verticalGradient(
-                        listOf(BrandPrimaryLight, BrandPrimaryDark)
-                    )
+                        listOf(BrandPrimary, BrandPrimaryLight),
+                    ),
                 ),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                // Check circle
                 val circleScale by animateFloatAsState(
                     targetValue = if (animationStarted) 1f else 0f,
-                    animationSpec = spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMedium),
-                    label = "success-circle"
+                    animationSpec = spring(
+                        dampingRatio = 0.5f,
+                        stiffness = Spring.StiffnessMedium,
+                    ),
+                    label = "success-circle",
                 )
                 Box(
                     modifier = Modifier
                         .size(108.dp)
                         .graphicsLayer { scaleX = circleScale; scaleY = circleScale }
-                        .shadow(12.dp, CircleShape)
+                        .shadow(elevation = 12.dp, shape = CircleShape)
                         .background(Color.White, CircleShape),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         Icons.Rounded.Check,
                         contentDescription = null,
-                        tint = AccentTeal,
-                        modifier = Modifier.size(56.dp)
+                        tint = SahmSuccess,
+                        modifier = Modifier.size(56.dp),
                     )
                 }
                 Spacer(Modifier.height(SahmSpacing.xl))
                 AnimatedVisibility(
                     visible = animationStarted,
-                    enter = slideInVertically(animationSpec = tween(300)) { it / 2 } + fadeIn()
+                    enter = slideInVertically(tween(300)) { it / 2 } + fadeIn(),
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             "Payment Successful",
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = Color.White
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 24.sp,
+                            ),
+                            color = Color.White,
                         )
                         Spacer(Modifier.height(SahmSpacing.xs))
                         state.completedOrder?.let { order ->
                             Text(
                                 "Order #${order.id.takeLast(6).uppercase()}",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color.White.copy(alpha = 0.85f)
+                                style = MaterialTheme.typography.titleMedium.copy(fontSize = 15.sp),
+                                color = Color.White.copy(alpha = 0.92f),
                             )
                         }
                     }
@@ -141,60 +146,91 @@ fun ReceiptScreen(
             }
         }
 
+        // Receipt card
         AnimatedVisibility(
             visible = animationStarted && state.printedReceiptText != null,
-            enter = fadeIn(tween(durationMillis = 400, delayMillis = 600))
-                + slideInVertically(tween(400, 600)) { it / 4 },
-            modifier = Modifier.fillMaxWidth().padding(SahmSpacing.lg)
+            enter = fadeIn(tween(durationMillis = 400, delayMillis = 500))
+                + slideInVertically(tween(400, 500)) { it / 4 },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(SahmSpacing.lg),
         ) {
             val text = state.printedReceiptText ?: ""
             Surface(
                 shape = RoundedCornerShape(SahmRadius.lg),
                 color = Color.White,
-                shadowElevation = 4.dp
+                shadowElevation = 4.dp,
             ) {
                 ReceiptPreview(text = text)
             }
         }
 
+        // Action row
         AnimatedVisibility(
             visible = animationStarted,
-            enter = fadeIn(tween(durationMillis = 400, delayMillis = 900))
+            enter = fadeIn(tween(durationMillis = 400, delayMillis = 800)),
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = SahmSpacing.lg, vertical = SahmSpacing.md),
-                horizontalArrangement = Arrangement.spacedBy(SahmSpacing.md)
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = SahmSpacing.lg),
+                verticalArrangement = Arrangement.spacedBy(SahmSpacing.sm),
             ) {
-                Surface(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp)
-                        .clickable { store.dispatch(CheckoutIntent.PrintReceipt) },
-                    shape = RoundedCornerShape(SahmRadius.md),
-                    color = Color.Transparent,
-                    border = androidx.compose.foundation.BorderStroke(1.5.dp, BrandPrimary)
+                PlazaPrimaryButton(
+                    text = "Track Order",
+                    onClick = onTrackOrder,
+                    leadingIcon = Icons.Rounded.Visibility,
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(SahmSpacing.sm),
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Rounded.Print, contentDescription = null,
-                                tint = BrandPrimary, modifier = Modifier.size(20.dp))
-                            Spacer(Modifier.size(SahmSpacing.sm))
-                            Text("Reprint", style = MaterialTheme.typography.titleMedium,
-                                color = BrandPrimary)
-                        }
-                    }
-                }
-                Box(modifier = Modifier.weight(1f)) {
-                    PrimaryGradientButton(
+                    OutlinedAction(
+                        text = "Reprint",
+                        icon = Icons.Rounded.Print,
+                        onClick = { store.dispatch(CheckoutIntent.PrintReceipt) },
+                        modifier = Modifier.weight(1f),
+                    )
+                    OutlinedAction(
                         text = "New Order",
+                        icon = Icons.Rounded.Add,
                         onClick = onNewOrder,
-                        leadingIcon = Icons.Rounded.Add
+                        modifier = Modifier.weight(1f),
                     )
                 }
             }
         }
         Spacer(Modifier.height(SahmSpacing.xxl))
+    }
+}
+
+@Composable
+private fun OutlinedAction(
+    text: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier
+            .height(56.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(SahmRadius.md),
+        color = Color.White,
+        border = BorderStroke(1.5.dp, BrandPrimary),
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(icon, contentDescription = null, tint = BrandPrimary,
+                    modifier = Modifier.size(20.dp))
+                Spacer(Modifier.size(SahmSpacing.sm))
+                Text(
+                    text,
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 15.sp,
+                    ),
+                    color = BrandPrimary,
+                )
+            }
+        }
     }
 }

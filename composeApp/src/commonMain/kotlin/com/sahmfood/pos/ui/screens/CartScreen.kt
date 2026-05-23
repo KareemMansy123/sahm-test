@@ -5,19 +5,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBackIos
+import androidx.compose.material.icons.rounded.ShoppingBag
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,14 +30,17 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.sahmfood.pos.presentation.catalog.CatalogIntent
 import com.sahmfood.pos.presentation.catalog.CatalogStore
 import com.sahmfood.pos.ui.components.CartLineItem
-import com.sahmfood.pos.ui.components.EmptyCartState
 import com.sahmfood.pos.ui.components.OrderTotalCard
+import com.sahmfood.pos.ui.components.PlazaEmptyState
 import com.sahmfood.pos.ui.theme.BrandPrimary
-import com.sahmfood.pos.ui.theme.Elevation2
 import com.sahmfood.pos.ui.theme.Neutral5
 import com.sahmfood.pos.ui.theme.Neutral95
 import com.sahmfood.pos.ui.theme.SahmRadius
@@ -59,7 +59,14 @@ fun CartScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Your Order", style = MaterialTheme.typography.titleLarge, color = Neutral95)
+                    Text(
+                        "Your Order",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                        ),
+                        color = Neutral95,
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -67,73 +74,101 @@ fun CartScreen(
                             Icons.AutoMirrored.Rounded.ArrowBackIos,
                             contentDescription = "Back",
                             tint = Neutral95,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(18.dp),
                         )
                     }
                 },
                 actions = {
                     if (!state.isCartEmpty) {
                         TextButton(onClick = { store.dispatch(CatalogIntent.ClearCart) }) {
-                            Text("Clear", color = BrandPrimary,
-                                style = MaterialTheme.typography.labelLarge)
+                            Text(
+                                "Clear",
+                                color = BrandPrimary,
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = FontWeight.SemiBold,
+                                ),
+                            )
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Elevation2)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
             )
-        }
+        },
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
             if (state.isCartEmpty) {
-                EmptyCartState(onBrowse = onBack)
+                PlazaEmptyState(
+                    icon = Icons.Rounded.ShoppingBag,
+                    title = "Your cart is empty",
+                    description = "Add items from the menu to start an order.",
+                    ctaLabel = "Browse Menu",
+                    onCta = onBack,
+                )
             } else {
                 Column(modifier = Modifier.fillMaxSize()) {
                     LazyColumn(
                         modifier = Modifier.weight(1f),
                         contentPadding = PaddingValues(
                             horizontal = SahmSpacing.lg,
-                            vertical = SahmSpacing.md
+                            vertical = SahmSpacing.md,
                         ),
-                        verticalArrangement = Arrangement.spacedBy(SahmSpacing.sm)
+                        verticalArrangement = Arrangement.spacedBy(SahmSpacing.md),
                     ) {
                         items(items = state.cart, key = { it.product.id }) { item ->
                             CartLineItem(
                                 item = item,
                                 onIncrement = {
-                                    store.dispatch(CatalogIntent.UpdateQuantity(
-                                        item.product.id, item.quantity + 1
-                                    ))
+                                    store.dispatch(
+                                        CatalogIntent.UpdateQuantity(
+                                            item.product.id, item.quantity + 1,
+                                        ),
+                                    )
                                 },
                                 onDecrement = {
                                     if (item.quantity > 1) {
-                                        store.dispatch(CatalogIntent.UpdateQuantity(
-                                            item.product.id, item.quantity - 1
-                                        ))
+                                        store.dispatch(
+                                            CatalogIntent.UpdateQuantity(
+                                                item.product.id, item.quantity - 1,
+                                            ),
+                                        )
                                     } else {
-                                        store.dispatch(CatalogIntent.RemoveFromCart(item.product.id))
+                                        store.dispatch(
+                                            CatalogIntent.RemoveFromCart(item.product.id),
+                                        )
                                     }
-                                }
+                                },
+                                onRemove = {
+                                    store.dispatch(CatalogIntent.RemoveFromCart(item.product.id))
+                                },
                             )
                         }
                     }
-                    // Pinned summary at the bottom
+                    // Pinned bottom summary
                     Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        color = Elevation2,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .shadow(
+                                elevation = 16.dp,
+                                shape = RoundedCornerShape(
+                                    topStart = SahmRadius.xxl,
+                                    topEnd = SahmRadius.xxl,
+                                ),
+                                ambientColor = Color.Black.copy(alpha = 0.08f),
+                                spotColor = Color.Black.copy(alpha = 0.12f),
+                            ),
+                        color = Color.White,
                         shape = RoundedCornerShape(
-                            topStart = SahmRadius.lg,
-                            topEnd = SahmRadius.lg
+                            topStart = SahmRadius.xxl,
+                            topEnd = SahmRadius.xxl,
                         ),
-                        tonalElevation = 4.dp
                     ) {
-                        Column(modifier = Modifier.padding(SahmSpacing.lg)) {
+                        Box(modifier = Modifier.padding(SahmSpacing.xl)) {
                             OrderTotalCard(
                                 totals = state.totals,
                                 onCharge = onCheckout,
                                 chargeEnabled = !state.isCartEmpty,
-                                chargeLabel = "Proceed to Checkout"
+                                chargeLabel = "Proceed to Checkout",
                             )
-                            Spacer(Modifier.size(SahmSpacing.xs))
                         }
                     }
                 }

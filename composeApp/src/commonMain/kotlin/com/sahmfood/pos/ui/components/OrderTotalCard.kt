@@ -2,45 +2,42 @@ package com.sahmfood.pos.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ChevronRight
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.rounded.ArrowForward
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.sahmfood.pos.domain.entities.OrderTotals
 import com.sahmfood.pos.ui.theme.BrandPrimary
-import com.sahmfood.pos.ui.theme.BrandPrimaryDark
-import com.sahmfood.pos.ui.theme.BrandPrimaryLight
-import com.sahmfood.pos.ui.theme.Elevation3
-import com.sahmfood.pos.ui.theme.Neutral40
-import com.sahmfood.pos.ui.theme.Neutral60
+import com.sahmfood.pos.ui.theme.FreeDeliveryColor
+import com.sahmfood.pos.ui.theme.Neutral20
 import com.sahmfood.pos.ui.theme.Neutral80
 import com.sahmfood.pos.ui.theme.Neutral95
 import com.sahmfood.pos.ui.theme.SahmDurations
-import com.sahmfood.pos.ui.theme.SahmRadius
 import com.sahmfood.pos.ui.theme.SahmSpacing
 
+/**
+ * Plaza-style order summary block. Used inside the pinned bottom summary
+ * on the cart screen and as the "Order Summary" section on checkout.
+ *
+ * Lines: subtotal, tax (14%), discount (optional), total. Total flips with
+ * an animated value.
+ */
 @Composable
 fun OrderTotalCard(
     totals: OrderTotals,
@@ -48,103 +45,95 @@ fun OrderTotalCard(
     chargeEnabled: Boolean,
     modifier: Modifier = Modifier,
     chargeLabel: String = "Proceed to Checkout",
+    showButton: Boolean = true,
 ) {
-    val animatedTotal by animateFloatAsState(
-        targetValue = totals.grandTotal.amount / 100f,
+    // Animate the piastre value as a Float (Float can represent integer piastres
+    // exactly up to ~16 million, which is well past any real receipt total),
+    // then format with integer arithmetic to avoid sub-piastre drift.
+    val animatedPiastres by animateFloatAsState(
+        targetValue = totals.grandTotal.amount.toFloat(),
         animationSpec = tween(durationMillis = SahmDurations.long),
-        label = "grand-total"
+        label = "grand-total",
     )
 
-    Card(
+    Column(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(SahmRadius.lg),
-        colors = CardDefaults.cardColors(containerColor = Elevation3),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Column(
-            modifier = Modifier.padding(SahmSpacing.xl),
-            verticalArrangement = Arrangement.spacedBy(SahmSpacing.sm)
+        SummaryRow("Subtotal", totals.subtotal.toDisplayString())
+        SummaryRow("Tax (14%)", totals.taxAmount.toDisplayString())
+        if (totals.discount.amount > 0) {
+            SummaryRow(
+                "Discount",
+                "- " + totals.discount.toDisplayString(),
+                color = FreeDeliveryColor,
+            )
+        }
+        HorizontalDivider(color = Neutral20, thickness = 1.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            LabelRow("Subtotal", totals.subtotal.toDisplayString())
-            LabelRow("Tax (14%)", totals.taxAmount.toDisplayString())
-            if (totals.discount.amount > 0) {
-                LabelRow("Discount", "- " + totals.discount.toDisplayString(),
-                    color = MaterialTheme.colorScheme.tertiary)
-            }
-            HorizontalDivider(color = Neutral40, thickness = 0.5.dp)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Total", style = MaterialTheme.typography.titleLarge, color = Neutral95)
-                Text(
-                    text = formatEgp(animatedTotal),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = BrandPrimary
-                )
-            }
+            Text(
+                "Total",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                ),
+                color = Neutral95,
+            )
+            Text(
+                text = formatEgp(animatedPiastres.toLong()),
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp,
+                ),
+                color = BrandPrimary,
+            )
+        }
+        if (showButton) {
             Spacer(Modifier.height(SahmSpacing.sm))
-            PrimaryGradientButton(
+            PlazaPrimaryButton(
                 text = chargeLabel,
                 onClick = onCharge,
                 enabled = chargeEnabled,
-                trailingIcon = Icons.Rounded.ChevronRight
+                trailingIcon = Icons.Rounded.ArrowForward,
             )
         }
     }
 }
 
 @Composable
-fun PrimaryGradientButton(
-    text: String,
-    onClick: () -> Unit,
-    enabled: Boolean = true,
-    trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
-    leadingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
-    modifier: Modifier = Modifier,
+private fun SummaryRow(
+    label: String,
+    value: String,
+    color: Color = Neutral95,
 ) {
-    val brush = if (enabled) {
-        Brush.horizontalGradient(listOf(BrandPrimaryLight, BrandPrimaryDark))
-    } else {
-        Brush.horizontalGradient(listOf(Neutral40, Neutral40))
-    }
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .background(brush, RoundedCornerShape(SahmRadius.md))
-            .clickable(enabled = enabled, onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (leadingIcon != null) {
-                Icon(leadingIcon, contentDescription = null, tint = Color.White,
-                    modifier = Modifier.padding(end = SahmSpacing.sm))
-            }
-            Text(text, style = MaterialTheme.typography.titleMedium, color = Color.White)
-            if (trailingIcon != null) {
-                Icon(trailingIcon, contentDescription = null, tint = Color.White,
-                    modifier = Modifier.padding(start = SahmSpacing.sm))
-            }
-        }
-    }
-}
-
-@Composable
-private fun LabelRow(label: String, value: String, color: Color = Neutral80) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(label, style = MaterialTheme.typography.bodyLarge, color = Neutral60)
-        Text(value, style = MaterialTheme.typography.bodyLarge, color = color)
+        Text(
+            label,
+            style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
+            color = Neutral80,
+        )
+        Text(
+            value,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+            ),
+            color = color,
+        )
     }
 }
 
-private fun formatEgp(value: Float): String {
-    val whole = value.toInt()
-    val cents = ((value - whole) * 100).toInt()
+private fun formatEgp(piastres: Long): String {
+    val whole = piastres / 100
+    val cents = piastres % 100
     val absCents = if (cents < 0) -cents else cents
     return "EGP $whole.${absCents.toString().padStart(2, '0')}"
 }
+

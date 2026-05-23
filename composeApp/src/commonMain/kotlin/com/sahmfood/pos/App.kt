@@ -27,16 +27,18 @@ import com.sahmfood.pos.ui.screens.CartScreen
 import com.sahmfood.pos.ui.screens.CatalogScreen
 import com.sahmfood.pos.ui.screens.CheckoutScreen
 import com.sahmfood.pos.ui.screens.OrderHistoryScreen
+import com.sahmfood.pos.ui.screens.OrderTrackingScreen
 import com.sahmfood.pos.ui.screens.ReceiptScreen
 import com.sahmfood.pos.ui.theme.SahmTheme
 import org.koin.compose.koinInject
 
-sealed class Screen {
-    data object Catalog : Screen()
-    data object Cart : Screen()
-    data object Checkout : Screen()
-    data object Receipt : Screen()
-    data object History : Screen()
+sealed class Screen(val index: Int) {
+    data object Catalog : Screen(0)
+    data object Cart : Screen(1)
+    data object Checkout : Screen(2)
+    data object Receipt : Screen(3)
+    data class OrderTracking(val orderId: String) : Screen(4)
+    data object History : Screen(5)
 }
 
 @Composable
@@ -49,34 +51,19 @@ fun App() {
         val syncWorker: SyncWorker = koinInject()
 
         var screen by remember { mutableStateOf<Screen>(Screen.Catalog) }
-        var screenIndex by remember { mutableStateOf(0) }
-
-        // Map screens to navigation indices so transitions know which direction to slide.
-        fun indexOf(s: Screen): Int = when (s) {
-            Screen.Catalog -> 0
-            Screen.Cart -> 1
-            Screen.Checkout -> 2
-            Screen.Receipt -> 3
-            Screen.History -> 4
-        }
-
-        fun goTo(s: Screen) {
-            screenIndex = indexOf(s)
-            screen = s
-        }
 
         LaunchedEffect(Unit) {
             catalogSeed.seedIfEmpty()
             syncWorker.start()
         }
 
-        // Wire CatalogEffect.NavigateToCheckout → CheckoutStore.Initialize → Screen change.
+        // Catalog effect: navigate to checkout when user taps Charge.
         LaunchedEffect(catalogStore) {
             catalogStore.effects.collect { eff ->
                 when (eff) {
                     is CatalogEffect.NavigateToCheckout -> {
                         checkoutStore.dispatch(CheckoutIntent.Initialize(eff.cart, eff.totals))
-                        goTo(Screen.Checkout)
+                        screen = Screen.Checkout
                     }
                     else -> Unit
                 }
@@ -100,40 +87,55 @@ fun App() {
         AnimatedContent(
             targetState = screen,
             transitionSpec = {
-                val from = indexOf(initialState)
-                val to = indexOf(targetState)
-                val direction = if (to >= from) 1 else -1
-                (slideInHorizontally(animationSpec = tween(250)) { it * direction } + fadeIn()) togetherWith
-                    (slideOutHorizontally(animationSpec = tween(250)) { -it * direction / 3 } + fadeOut())
+                val direction = if (targetState.index >= initialState.index) 1 else -1
+                (slideInHorizontally(tween(280)) { it * direction } + fadeIn()) togetherWith
+                    (slideOutHorizontally(tween(280)) { -it * direction / 3 } + fadeOut())
             },
-            label = "screen-transition"
+            label = "screen-transition",
         ) { current ->
             when (current) {
                 Screen.Catalog -> CatalogScreen(
                     store = catalogStore,
-                    onOpenHistory = { goTo(Screen.History) },
-                    onOpenCart = { goTo(Screen.Cart) }
+                    onOpenHistory = { screen = Screen.History },
+                    onOpenCart = { screen = Screen.Cart },
                 )
                 Screen.Cart -> CartScreen(
                     store = catalogStore,
-                    onBack = { goTo(Screen.Catalog) },
-                    onCheckout = { catalogStore.dispatch(CatalogIntent.Checkout) }
+                    onBack = { screen = Screen.Catalog },
+                    onCheckout = { catalogStore.dispatch(CatalogIntent.Checkout) },
                 )
                 Screen.Checkout -> CheckoutScreen(
                     store = checkoutStore,
-                    onBack = { goTo(Screen.Cart) },
-                    onPaymentComplete = { goTo(Screen.Receipt) }
+                    onBack = { screen = Screen.Cart },
+                    onPaymentComplete = { screen = Screen.Receipt },
                 )
                 Screen.Receipt -> ReceiptScreen(
                     store = checkoutStore,
                     onNewOrder = {
                         catalogStore.dispatch(CatalogIntent.ClearCart)
-                        goTo(Screen.Catalog)
-                    }
+                        screen = Screen.Catalog
+                    },
+                    onTrackOrder = {
+                        // The receipt screen is only visible after PaymentSucceeded,
+                        // which guarantees completedOrder is non-null. If it is
+                        // null we silently stay on the receipt rather than open a
+                        // tracker for a junk "—" id.
+                        val orderId = checkoutStore.state.value.completedOrder?.id
+                        if (orderId != null) {
+                            screen = Screen.OrderTracking(orderId)
+                        }
+                    },
+                )
+                is Screen.OrderTracking -> OrderTrackingScreen(
+                    orderId = current.orderId,
+                    onBack = {
+                        catalogStore.dispatch(CatalogIntent.ClearCart)
+                        screen = Screen.Catalog
+                    },
                 )
                 Screen.History -> OrderHistoryScreen(
                     store = historyStore,
-                    onBack = { goTo(Screen.Catalog) }
+                    onBack = { screen = Screen.Catalog },
                 )
             }
         }

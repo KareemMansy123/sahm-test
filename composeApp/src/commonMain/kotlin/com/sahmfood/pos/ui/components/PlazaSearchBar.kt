@@ -23,56 +23,67 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import com.sahmfood.pos.ui.theme.BrandPrimary
 import com.sahmfood.pos.ui.theme.Neutral60
 import com.sahmfood.pos.ui.theme.Neutral95
-import com.sahmfood.pos.ui.theme.SahmDimens
 import com.sahmfood.pos.ui.theme.SahmRadius
 import com.sahmfood.pos.ui.theme.SahmSpacing
 
+/**
+ * Plaza's clean white search bar — 8dp radius, soft shadow, leading search
+ * icon and a trailing barcode-scan affordance in brand color.
+ */
 @Composable
-fun FloatingSearchBar(
+fun PlazaSearchBar(
     value: String,
     onValueChange: (String) -> Unit,
+    placeholder: String = "Search menu, items, categories…",
     onScanClick: () -> Unit = {},
-    placeholder: String = "Search menu…",
     modifier: Modifier = Modifier,
 ) {
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .height(SahmDimens.searchBarHeight)
-            .shadow(elevation = 8.dp, shape = RoundedCornerShape(SahmRadius.pill), clip = false),
-        shape = RoundedCornerShape(SahmRadius.pill),
+            .height(48.dp)
+            .shadow(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(SahmRadius.sm),
+                ambientColor = Color.Black.copy(alpha = 0.04f),
+                spotColor = Color.Black.copy(alpha = 0.06f),
+            ),
+        shape = RoundedCornerShape(SahmRadius.sm),
         color = Color.White,
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = SahmSpacing.lg),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.padding(horizontal = SahmSpacing.md),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 Icons.Rounded.Search,
                 contentDescription = null,
                 tint = Neutral60,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
-            Box(modifier = Modifier.weight(1f).padding(horizontal = SahmSpacing.md)) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = SahmSpacing.md),
+            ) {
                 if (value.isEmpty()) {
                     Text(
                         placeholder,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Neutral60
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Neutral60,
                     )
                 }
                 BasicTextField(
                     value = value,
                     onValueChange = onValueChange,
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = Neutral95),
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(color = Neutral95),
                     cursorBrush = SolidColor(BrandPrimary),
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
             IconButton(onClick = onScanClick, modifier = Modifier.size(36.dp)) {
@@ -80,7 +91,7 @@ fun FloatingSearchBar(
                     Icons.Rounded.QrCodeScanner,
                     contentDescription = "Scan barcode",
                     tint = BrandPrimary,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
             }
         }
