@@ -39,6 +39,7 @@ import com.sahmfood.pos.presentation.catalog.CatalogStore
 import com.sahmfood.pos.presentation.favorites.FavoritesIntent
 import com.sahmfood.pos.presentation.favorites.FavoritesStore
 import com.sahmfood.pos.presentation.history.HistoryStore
+import com.sahmfood.pos.presentation.settings.AppSettingsStore
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ShoppingBag
 import com.sahmfood.pos.ui.components.AiFloatingButton
@@ -67,9 +68,15 @@ fun MainScreen(
     catalogStore: CatalogStore,
     favoritesStore: FavoritesStore,
     historyStore: HistoryStore,
+    settings: AppSettingsStore,
     onOpenProduct: (Product) -> Unit,
     onOpenCheckout: () -> Unit,
     onOpenAi: () -> Unit,
+    onOpenFavorites: () -> Unit,
+    onOpenSwitchRegister: () -> Unit,
+    onOpenPrinterSettings: () -> Unit,
+    onOpenPreferences: () -> Unit,
+    onOpenHelp: () -> Unit,
 ) {
     val catalogState by catalogStore.state.collectAsState()
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { PlazaBottomTabs.size })
@@ -107,11 +114,13 @@ fun MainScreen(
                     )
                     "orders" -> OrdersTabBody(historyStore = historyStore)
                     "profile" -> ProfileScreen(
-                        onOpenFavorites = {
-                            // future: deep-link to favorites screen
-                            scope.launch { pagerState.animateScrollToPage(0) }
-                        },
+                        settings = settings,
+                        onOpenFavorites = onOpenFavorites,
                         onOpenAi = onOpenAi,
+                        onOpenSwitchRegister = onOpenSwitchRegister,
+                        onOpenPrinterSettings = onOpenPrinterSettings,
+                        onOpenPreferences = onOpenPreferences,
+                        onOpenHelp = onOpenHelp,
                     )
                 }
             }

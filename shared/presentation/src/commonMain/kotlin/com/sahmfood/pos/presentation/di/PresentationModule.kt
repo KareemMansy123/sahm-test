@@ -6,6 +6,7 @@ import com.sahmfood.pos.presentation.checkout.CheckoutStore
 import com.sahmfood.pos.presentation.common.renderReceiptText
 import com.sahmfood.pos.presentation.favorites.FavoritesStore
 import com.sahmfood.pos.presentation.history.HistoryStore
+import com.sahmfood.pos.presentation.settings.AppSettingsStore
 import org.koin.dsl.module
 
 val presentationModule = module {
@@ -22,4 +23,5 @@ val presentationModule = module {
     // Singles: state shared across tabs / re-entry
     single { FavoritesStore(get(), get(), get()) }
     single { AiChatStore(get(), get(), get()) }
+    single { AppSettingsStore() }
 }

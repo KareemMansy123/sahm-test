@@ -28,11 +28,18 @@ import androidx.compose.material.icons.rounded.Logout
 import androidx.compose.material.icons.rounded.Print
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.SwitchAccount
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -41,6 +48,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sahmfood.pos.presentation.settings.AppSettingsStore
+import com.sahmfood.pos.ui.components.AboutSheet
+import com.sahmfood.pos.ui.components.LanguagePickerSheet
+import com.sahmfood.pos.ui.components.ThemePickerSheet
+import com.sahmfood.pos.presentation.settings.AppTheme
 import com.sahmfood.pos.ui.theme.BrandPrimary
 import com.sahmfood.pos.ui.theme.BrandPrimaryContainer
 import com.sahmfood.pos.ui.theme.BrandPrimaryLight
@@ -52,18 +64,33 @@ import com.sahmfood.pos.ui.theme.SahmError
 import com.sahmfood.pos.ui.theme.SahmRadius
 import com.sahmfood.pos.ui.theme.SahmSpacing
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
+    settings: AppSettingsStore,
     onOpenFavorites: () -> Unit,
     onOpenAi: () -> Unit,
+    onOpenSwitchRegister: () -> Unit,
+    onOpenPrinterSettings: () -> Unit,
+    onOpenPreferences: () -> Unit,
+    onOpenHelp: () -> Unit,
 ) {
+    val theme by settings.theme.collectAsState()
+    val language by settings.language.collectAsState()
+
+    var showThemeSheet by remember { mutableStateOf(false) }
+    var showLanguageSheet by remember { mutableStateOf(false) }
+    var showAboutSheet by remember { mutableStateOf(false) }
+    val themeSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val languageSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val aboutSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
     val scroll = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scroll),
     ) {
-        // Profile hero
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -75,9 +102,7 @@ fun ProfileScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .background(Color.White, CircleShape),
+                    modifier = Modifier.size(80.dp).background(Color.White, CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text("K", style = MaterialTheme.typography.headlineMedium.copy(
@@ -100,11 +125,8 @@ fun ProfileScreen(
             }
         }
         Spacer(Modifier.size(SahmSpacing.lg))
-        // Quick action cards
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = SahmSpacing.lg),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = SahmSpacing.lg),
             horizontalArrangement = Arrangement.spacedBy(SahmSpacing.md),
         ) {
             QuickStatCard(
@@ -122,26 +144,81 @@ fun ProfileScreen(
         }
         Spacer(Modifier.size(SahmSpacing.xl))
 
-        // Settings section
         SectionHeading("Account")
-        SettingsRow(Icons.Rounded.SwitchAccount, "Switch register") {}
-        SettingsRow(Icons.Rounded.Print, "Printer settings") {}
-        SettingsRow(Icons.Rounded.Settings, "Preferences") {}
+        SettingsRow(Icons.Rounded.SwitchAccount, "Switch register",
+            onClick = onOpenSwitchRegister)
+        SettingsRow(Icons.Rounded.Print, "Printer settings",
+            onClick = onOpenPrinterSettings)
+        SettingsRow(Icons.Rounded.Settings, "Preferences",
+            onClick = onOpenPreferences)
 
         SectionHeading("App")
-        SettingsRow(Icons.Rounded.Language, "Language", trailingValue = "English") {}
-        SettingsRow(Icons.Rounded.DarkMode, "Theme", trailingValue = "Light") {}
-        SettingsRow(Icons.Rounded.HelpOutline, "Help & support") {}
-        SettingsRow(Icons.Rounded.Info, "About Sahm POS", trailingValue = "v1.0") {}
+        SettingsRow(
+            Icons.Rounded.Language,
+            "Language",
+            trailingValue = language.displayName,
+            onClick = { showLanguageSheet = true },
+        )
+        SettingsRow(
+            Icons.Rounded.DarkMode,
+            "Theme",
+            trailingValue = theme.displayName(),
+            onClick = { showThemeSheet = true },
+        )
+        SettingsRow(Icons.Rounded.HelpOutline, "Help & support",
+            onClick = onOpenHelp)
+        SettingsRow(
+            Icons.Rounded.Info,
+            "About Sahm POS",
+            trailingValue = "v1.0",
+            onClick = { showAboutSheet = true },
+        )
 
         SectionHeading("Session")
         SettingsRow(
             icon = Icons.Rounded.Logout,
             label = "End shift",
             tint = SahmError,
-        ) {}
+            onClick = { /* user opted to leave this unwired */ },
+        )
         Spacer(Modifier.size(SahmSpacing.xxxl))
     }
+
+    if (showThemeSheet) {
+        ThemePickerSheet(
+            current = theme,
+            sheetState = themeSheetState,
+            onPick = { picked ->
+                settings.setTheme(picked)
+                showThemeSheet = false
+            },
+            onDismiss = { showThemeSheet = false },
+        )
+    }
+    if (showLanguageSheet) {
+        LanguagePickerSheet(
+            current = language,
+            sheetState = languageSheetState,
+            onPick = { picked ->
+                settings.setLanguage(picked)
+                showLanguageSheet = false
+            },
+            onDismiss = { showLanguageSheet = false },
+        )
+    }
+    if (showAboutSheet) {
+        AboutSheet(
+            sheetState = aboutSheetState,
+            onDismiss = { showAboutSheet = false },
+            onOpenLink = { /* future: PlatformBrowser */ },
+        )
+    }
+}
+
+private fun AppTheme.displayName(): String = when (this) {
+    AppTheme.Light -> "Light"
+    AppTheme.Dark -> "Dark"
+    AppTheme.System -> "System"
 }
 
 @Composable

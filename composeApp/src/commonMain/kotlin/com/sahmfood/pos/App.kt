@@ -26,23 +26,29 @@ import com.sahmfood.pos.presentation.checkout.CheckoutStore
 import com.sahmfood.pos.presentation.favorites.FavoritesStore
 import com.sahmfood.pos.presentation.history.HistoryEffect
 import com.sahmfood.pos.presentation.history.HistoryStore
+import com.sahmfood.pos.presentation.settings.AppSettingsStore
 import com.sahmfood.pos.ui.screens.AiChatScreen
 import com.sahmfood.pos.ui.screens.CheckoutScreen
+import com.sahmfood.pos.ui.screens.FavoritesScreen
+import com.sahmfood.pos.ui.screens.HelpSupportScreen
 import com.sahmfood.pos.ui.screens.MainScreen
 import com.sahmfood.pos.ui.screens.OrderTrackingScreen
+import com.sahmfood.pos.ui.screens.PreferencesScreen
+import com.sahmfood.pos.ui.screens.PrinterSettingsScreen
 import com.sahmfood.pos.ui.screens.ProductDetailScreen
 import com.sahmfood.pos.ui.screens.ReceiptScreen
+import com.sahmfood.pos.ui.screens.SwitchRegisterScreen
 import com.sahmfood.pos.ui.theme.SahmTheme
 import org.koin.compose.koinInject
 
-/**
- * Root navigation. Plaza-style: a Main scaffold holds the 5 tabs;
- * detail / checkout / receipt / tracking / AI chat are pushed routes
- * that overlay the main scaffold with slide-from-right transitions.
- */
 sealed class Route(val depth: Int) {
     data object Main : Route(0)
     data class ProductDetail(val product: Product) : Route(1)
+    data object Favorites : Route(1)
+    data object SwitchRegister : Route(1)
+    data object PrinterSettings : Route(1)
+    data object Preferences : Route(1)
+    data object Help : Route(1)
     data object Checkout : Route(2)
     data object Receipt : Route(3)
     data class Tracking(val orderId: String) : Route(4)
@@ -57,6 +63,7 @@ fun App() {
         val historyStore: HistoryStore = koinInject()
         val favoritesStore: FavoritesStore = koinInject()
         val aiChatStore: AiChatStore = koinInject()
+        val settings: AppSettingsStore = koinInject()
         val catalogSeed: CatalogSeed = koinInject()
         val syncWorker: SyncWorker = koinInject()
 
@@ -67,7 +74,6 @@ fun App() {
             syncWorker.start()
         }
 
-        // Catalog → Checkout transition
         LaunchedEffect(catalogStore) {
             catalogStore.effects.collect { eff ->
                 if (eff is CatalogEffect.NavigateToCheckout) {
@@ -107,9 +113,15 @@ fun App() {
                     catalogStore = catalogStore,
                     favoritesStore = favoritesStore,
                     historyStore = historyStore,
+                    settings = settings,
                     onOpenProduct = { product -> route = Route.ProductDetail(product) },
                     onOpenCheckout = { catalogStore.dispatch(CatalogIntent.Checkout) },
                     onOpenAi = { route = Route.AiChat },
+                    onOpenFavorites = { route = Route.Favorites },
+                    onOpenSwitchRegister = { route = Route.SwitchRegister },
+                    onOpenPrinterSettings = { route = Route.PrinterSettings },
+                    onOpenPreferences = { route = Route.Preferences },
+                    onOpenHelp = { route = Route.Help },
                 )
                 is Route.ProductDetail -> ProductDetailScreen(
                     product = current.product,
@@ -122,6 +134,16 @@ fun App() {
                         route = Route.Main
                     },
                 )
+                Route.Favorites -> FavoritesScreen(
+                    favoritesStore = favoritesStore,
+                    catalogStore = catalogStore,
+                    onOpenProduct = { product -> route = Route.ProductDetail(product) },
+                    onBrowseMenu = { route = Route.Main },
+                )
+                Route.SwitchRegister -> SwitchRegisterScreen(onBack = { route = Route.Main })
+                Route.PrinterSettings -> PrinterSettingsScreen(onBack = { route = Route.Main })
+                Route.Preferences -> PreferencesScreen(onBack = { route = Route.Main })
+                Route.Help -> HelpSupportScreen(onBack = { route = Route.Main })
                 Route.Checkout -> CheckoutScreen(
                     store = checkoutStore,
                     onBack = { route = Route.Main },
@@ -153,3 +175,6 @@ fun App() {
         }
     }
 }
+
+// FavoritesScreen takes a separate callback. The list-mode cards inside
+// already navigate to detail / add / remove via the store.
