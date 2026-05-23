@@ -1,5 +1,11 @@
 package com.sahmfood.pos.ui.components
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -45,6 +51,7 @@ import com.sahmfood.pos.ui.theme.PriceColor
 import com.sahmfood.pos.ui.theme.SahmDimens
 import com.sahmfood.pos.ui.theme.SahmRadius
 import com.sahmfood.pos.ui.theme.SahmSpacing
+import com.sahmfood.pos.ui.theme.pressScaleAuto
 import com.sahmfood.pos.ui.theme.categoryGradient
 import com.sahmfood.pos.ui.theme.plazaCardShadow
 
@@ -183,6 +190,7 @@ private fun QuantityPill(
         Box(
             modifier = Modifier
                 .size(28.dp)
+                .pressScaleAuto()
                 .background(Color.White, CircleShape)
                 .clickable(onClick = onDecrement),
             contentAlignment = Alignment.Center,
@@ -194,21 +202,32 @@ private fun QuantityPill(
                 modifier = Modifier.size(16.dp),
             )
         }
-        Text(
-            quantity.toString(),
-            style = MaterialTheme.typography.titleSmall.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-            ),
-            color = Neutral95,
-            textAlign = TextAlign.Center,
+        AnimatedContent(
+            targetState = quantity,
+            transitionSpec = {
+                val direction = if (targetState > initialState) 1 else -1
+                (slideInVertically { it * direction } + fadeIn()) togetherWith
+                    (slideOutVertically { -it * direction } + fadeOut())
+            },
+            label = "qty-cart",
             modifier = Modifier
                 .width(28.dp)
                 .padding(horizontal = 2.dp),
-        )
+        ) { q ->
+            Text(
+                q.toString(),
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                ),
+                color = Neutral95,
+                textAlign = TextAlign.Center,
+            )
+        }
         Box(
             modifier = Modifier
                 .size(28.dp)
+                .pressScaleAuto()
                 .background(BrandPrimary, CircleShape)
                 .clickable(onClick = onIncrement),
             contentAlignment = Alignment.Center,

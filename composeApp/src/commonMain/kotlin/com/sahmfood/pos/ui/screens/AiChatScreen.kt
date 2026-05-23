@@ -1,10 +1,17 @@
 package com.sahmfood.pos.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,6 +33,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -74,6 +82,7 @@ import com.sahmfood.pos.ui.theme.Neutral80
 import com.sahmfood.pos.ui.theme.Neutral95
 import com.sahmfood.pos.ui.theme.SahmSpacing
 import com.sahmfood.pos.ui.theme.SahmSuccess
+import com.sahmfood.pos.ui.theme.pressScaleAuto
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -169,10 +178,17 @@ fun AiChatScreen(
                     contentPadding = PaddingValues(horizontal = SahmSpacing.lg),
                     horizontalArrangement = Arrangement.spacedBy(SahmSpacing.sm),
                 ) {
-                    items(state.quickActions) { action ->
+                    itemsIndexed(state.quickActions) { index, action ->
                         val (label, prompt) = resolveQuickAction(action.key, strings)
-                        QuickActionChip(label = label) {
-                            store.dispatch(AiChatIntent.QuickAction(prompt))
+                        AnimatedVisibility(
+                            visibleState = remember(action.key) {
+                                MutableTransitionState(false).apply { targetState = true }
+                            },
+                            enter = com.sahmfood.pos.ui.theme.Enter.listItem(index),
+                        ) {
+                            QuickActionChip(label = label) {
+                                store.dispatch(AiChatIntent.QuickAction(prompt))
+                            }
                         }
                     }
                 }
@@ -187,7 +203,17 @@ fun AiChatScreen(
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     items(state.messages, key = { it.id }) { message ->
-                        ChatBubble(message)
+                        ChatBubble(
+                            message,
+                            modifier = Modifier.animateItem(
+                                fadeInSpec = tween(280),
+                                fadeOutSpec = tween(160),
+                                placementSpec = androidx.compose.animation.core.spring(
+                                    dampingRatio = 0.85f,
+                                    stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow,
+                                ),
+                            ),
+                        )
                     }
                     if (state.isTyping) {
                         item { TypingIndicator() }
@@ -216,7 +242,9 @@ private fun resolveQuickAction(
 @Composable
 private fun QuickActionChip(label: String, onClick: () -> Unit) {
     Surface(
-        modifier = Modifier.clickable(onClick = onClick),
+        modifier = Modifier
+            .pressScaleAuto(pressedScale = 0.95f)
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
         color = Color.White,
         border = BorderStroke(1.dp, BrandPrimary.copy(alpha = 0.30f)),
@@ -246,10 +274,10 @@ private fun QuickActionChip(label: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun ChatBubble(message: AiMessage) {
+private fun ChatBubble(message: AiMessage, modifier: Modifier = Modifier) {
     val isUser = message.role == AiRole.User
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = SahmSpacing.lg, vertical = 4.dp),
         horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
@@ -426,14 +454,16 @@ private fun ChatInput(
                 }
             }
             Spacer(Modifier.width(SahmSpacing.sm))
+            val sendBg by androidx.compose.animation.animateColorAsState(
+                targetValue = if (text.isBlank() || !enabled) Neutral20 else BrandPrimary,
+                animationSpec = tween(220),
+                label = "send-bg",
+            )
             Box(
                 modifier = Modifier
                     .size(44.dp)
-                    .background(
-                        if (text.isBlank() || !enabled) Neutral20
-                        else BrandPrimary,
-                        CircleShape,
-                    )
+                    .pressScaleAuto(pressedScale = 0.9f)
+                    .background(sendBg, CircleShape)
                     .clickable(enabled = text.isNotBlank() && enabled) {
                         onSend(text)
                         text = ""

@@ -1,5 +1,7 @@
 package com.sahmfood.pos.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -70,6 +72,7 @@ import com.sahmfood.pos.ui.theme.Neutral95
 import com.sahmfood.pos.ui.theme.SahmRadius
 import com.sahmfood.pos.ui.theme.SahmSpacing
 import com.sahmfood.pos.ui.theme.SahmSuccess
+import com.sahmfood.pos.ui.theme.pressScaleAuto
 
 // ---- Switch Register ----
 
@@ -97,6 +100,7 @@ fun SwitchRegisterScreen(onBack: () -> Unit) {
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .pressScaleAuto(pressedScale = 0.98f)
                         .clickable { selected = reg.id },
                     shape = RoundedCornerShape(SahmRadius.md),
                     color = if (selected == reg.id) BrandPrimaryContainer else Color.White,
@@ -263,6 +267,7 @@ fun PrinterSettingsScreen(onBack: () -> Unit) {
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .pressScaleAuto(pressedScale = 0.97f)
                     .clickable { /* test print */ },
                 shape = RoundedCornerShape(SahmRadius.md),
                 color = BrandPrimaryContainer,
@@ -475,6 +480,7 @@ private fun ToggleRow(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .pressScaleAuto(pressedScale = 0.98f)
             .clickable { onChange(!checked) },
         shape = RoundedCornerShape(SahmRadius.md),
         color = Color.White,
@@ -581,6 +587,7 @@ private fun ContactRow(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .pressScaleAuto(pressedScale = 0.98f)
             .clickable { /* dial / mail */ },
         shape = RoundedCornerShape(SahmRadius.md),
         color = Color.White,
@@ -627,6 +634,7 @@ private fun LinkRow(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .pressScaleAuto(pressedScale = 0.98f)
             .clickable { },
         shape = RoundedCornerShape(SahmRadius.md),
         color = Color.White,
@@ -670,21 +678,28 @@ private fun FaqRow(question: String, answer: String) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .pressScaleAuto(pressedScale = 0.98f)
             .clickable { expanded = !expanded },
         shape = RoundedCornerShape(SahmRadius.md),
         color = Color.White,
     ) {
-        Column(modifier = Modifier.padding(SahmSpacing.md)) {
+        Column(
+            modifier = Modifier
+                .padding(SahmSpacing.md)
+                .animateContentSize(),
+        ) {
             Text(question,
                 style = MaterialTheme.typography.bodyMedium.copy(
                     fontWeight = FontWeight.SemiBold, fontSize = 14.sp),
                 color = Neutral95)
-            if (expanded) {
-                Spacer(Modifier.height(6.dp))
-                Text(answer,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        fontSize = 13.sp, lineHeight = 19.sp),
-                    color = Neutral60)
+            AnimatedVisibility(visible = expanded) {
+                Column {
+                    Spacer(Modifier.height(6.dp))
+                    Text(answer,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontSize = 13.sp, lineHeight = 19.sp),
+                        color = Neutral60)
+                }
             }
         }
     }

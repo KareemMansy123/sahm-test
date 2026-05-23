@@ -63,6 +63,7 @@ import com.sahmfood.pos.ui.theme.Neutral95
 import com.sahmfood.pos.ui.theme.SahmError
 import com.sahmfood.pos.ui.theme.SahmRadius
 import com.sahmfood.pos.ui.theme.SahmSpacing
+import com.sahmfood.pos.ui.theme.pressScaleAuto
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -230,7 +231,9 @@ private fun QuickStatCard(
     onClick: () -> Unit,
 ) {
     Surface(
-        modifier = modifier.clickable(onClick = onClick),
+        modifier = modifier
+            .pressScaleAuto(pressedScale = 0.95f)
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(SahmRadius.md),
         color = BrandPrimaryContainer,
     ) {
@@ -283,6 +286,7 @@ private fun SettingsRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = SahmSpacing.lg, vertical = 4.dp)
+            .pressScaleAuto(pressedScale = 0.98f)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(SahmRadius.md),
         color = Color.White,

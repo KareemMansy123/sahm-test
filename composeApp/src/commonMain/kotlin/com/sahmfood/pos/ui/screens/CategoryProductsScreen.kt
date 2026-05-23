@@ -129,6 +129,14 @@ fun CategoryProductsScreen(
                     ) {
                         items(products, key = { it.id }) { product ->
                             ProductCard(
+                                modifier = Modifier.animateItem(
+                                    fadeInSpec = androidx.compose.animation.core.tween(260),
+                                    fadeOutSpec = androidx.compose.animation.core.tween(180),
+                                    placementSpec = androidx.compose.animation.core.spring(
+                                        dampingRatio = 0.8f,
+                                        stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow,
+                                    ),
+                                ),
                                 product = product,
                                 isFavorite = product.id in favState.favoriteIds,
                                 onCardTap = { onOpenProduct(product) },

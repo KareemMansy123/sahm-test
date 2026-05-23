@@ -48,6 +48,7 @@ import com.sahmfood.pos.ui.theme.Neutral60
 import com.sahmfood.pos.ui.theme.Neutral95
 import com.sahmfood.pos.ui.theme.SahmRadius
 import com.sahmfood.pos.ui.theme.SahmSpacing
+import com.sahmfood.pos.ui.theme.pressScaleAuto
 import com.sahmfood.pos.ui.theme.categoryGradient
 import com.sahmfood.pos.ui.theme.plazaCardShadow
 
@@ -85,6 +86,14 @@ fun FavoritesScreen(
         ) {
             items(state.favoriteProducts, key = { it.id }) { product ->
                 FavoriteCard(
+                    modifier = Modifier.animateItem(
+                        fadeInSpec = androidx.compose.animation.core.tween(240),
+                        fadeOutSpec = androidx.compose.animation.core.tween(180),
+                        placementSpec = androidx.compose.animation.core.spring(
+                            dampingRatio = 0.8f,
+                            stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow,
+                        ),
+                    ),
                     product = product,
                     onTap = { onOpenProduct(product) },
                     onAdd = { catalogStore.dispatch(CatalogIntent.AddToCart(product)) },
@@ -101,9 +110,11 @@ private fun FavoriteCard(
     onTap: () -> Unit,
     onAdd: () -> Unit,
     onRemove: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
+    val lang = com.sahmfood.pos.ui.strings.currentLanguageCode()
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .plazaCardShadow(shape = RoundedCornerShape(SahmRadius.md), elevation = 2.dp)
             .clickable(onClick = onTap),
@@ -131,7 +142,7 @@ private fun FavoriteCard(
             Spacer(Modifier.width(SahmSpacing.md))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    product.name,
+                    product.localizedName(lang),
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp,
@@ -141,7 +152,7 @@ private fun FavoriteCard(
                 )
                 Spacer(Modifier.padding(top = 2.dp))
                 Text(
-                    product.category,
+                    product.localizedCategory(lang),
                     style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
                     color = Neutral60,
                 )
@@ -159,6 +170,7 @@ private fun FavoriteCard(
             Surface(
                 modifier = Modifier
                     .size(40.dp)
+                    .pressScaleAuto()
                     .clickable(onClick = onAdd),
                 shape = RoundedCornerShape(SahmRadius.sm),
                 color = BrandPrimary,
@@ -166,7 +178,7 @@ private fun FavoriteCard(
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         Icons.Rounded.Add,
-                        contentDescription = "Quick add ${product.name}",
+                        contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.size(20.dp),
                     )
@@ -175,7 +187,7 @@ private fun FavoriteCard(
             IconButton(onClick = onRemove, modifier = Modifier.size(36.dp)) {
                 Icon(
                     Icons.Rounded.Favorite,
-                    contentDescription = "Remove favorite",
+                    contentDescription = null,
                     tint = BrandPrimary,
                     modifier = Modifier.size(20.dp),
                 )

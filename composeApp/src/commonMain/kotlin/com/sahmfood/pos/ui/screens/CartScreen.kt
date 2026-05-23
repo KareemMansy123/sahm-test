@@ -1,5 +1,6 @@
 package com.sahmfood.pos.ui.screens
 
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -117,6 +118,14 @@ fun CartScreen(
                     ) {
                         items(items = state.cart, key = { it.product.id }) { item ->
                             CartLineItem(
+                                modifier = Modifier.animateItem(
+                                    fadeInSpec = tween(220),
+                                    fadeOutSpec = tween(180),
+                                    placementSpec = androidx.compose.animation.core.spring(
+                                        dampingRatio = 0.8f,
+                                        stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow,
+                                    ),
+                                ),
                                 item = item,
                                 onIncrement = {
                                     store.dispatch(

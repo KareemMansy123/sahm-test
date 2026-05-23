@@ -73,6 +73,7 @@ import com.sahmfood.pos.ui.theme.SahmSuccess
 import com.sahmfood.pos.ui.theme.SahmWarning
 import com.sahmfood.pos.ui.theme.SecondaryColorLight
 import com.sahmfood.pos.ui.theme.plazaCardShadow
+import com.sahmfood.pos.ui.theme.pressScaleAuto
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -186,7 +187,17 @@ fun OrderHistoryScreen(
                     verticalArrangement = Arrangement.spacedBy(SahmSpacing.sm),
                 ) {
                     items(items = filtered, key = { it.id }) { order ->
-                        OrderHistoryCard(order)
+                        OrderHistoryCard(
+                            order,
+                            modifier = Modifier.animateItem(
+                                fadeInSpec = androidx.compose.animation.core.tween(220),
+                                fadeOutSpec = androidx.compose.animation.core.tween(180),
+                                placementSpec = androidx.compose.animation.core.spring(
+                                    dampingRatio = 0.8f,
+                                    stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow,
+                                ),
+                            ),
+                        )
                     }
                 }
             }
@@ -245,12 +256,23 @@ private fun StatCard(
 
 @Composable
 private fun FilterPill(label: String, selected: Boolean, onClick: () -> Unit) {
+    val bg by androidx.compose.animation.animateColorAsState(
+        targetValue = if (selected) BrandPrimary else Color.White,
+        animationSpec = androidx.compose.animation.core.tween(220),
+        label = "pill-bg",
+    )
+    val textColor by androidx.compose.animation.animateColorAsState(
+        targetValue = if (selected) Color.White else Neutral60,
+        animationSpec = androidx.compose.animation.core.tween(220),
+        label = "pill-text",
+    )
     Surface(
         modifier = Modifier
             .height(36.dp)
+            .pressScaleAuto(pressedScale = 0.93f)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(18.dp),
-        color = if (selected) BrandPrimary else Color.White,
+        color = bg,
         border = if (selected) null
                  else BorderStroke(1.dp, Neutral40),
     ) {
@@ -264,17 +286,17 @@ private fun FilterPill(label: String, selected: Boolean, onClick: () -> Unit) {
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 13.sp,
                 ),
-                color = if (selected) Color.White else Neutral60,
+                color = textColor,
             )
         }
     }
 }
 
 @Composable
-private fun OrderHistoryCard(order: Order) {
+private fun OrderHistoryCard(order: Order, modifier: Modifier = Modifier) {
     val strings = com.sahmfood.pos.ui.strings.LocalSahmStrings.current
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .plazaCardShadow(shape = RoundedCornerShape(SahmRadius.md), elevation = 2.dp),
         shape = RoundedCornerShape(SahmRadius.md),

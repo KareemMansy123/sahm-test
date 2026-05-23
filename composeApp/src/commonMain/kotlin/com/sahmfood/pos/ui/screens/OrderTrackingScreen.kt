@@ -1,5 +1,16 @@
 package com.sahmfood.pos.ui.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -44,6 +55,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -125,7 +137,21 @@ fun OrderTrackingScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
         ) {
-            // Map-like illustration banner
+            // Map-like illustration banner — scooter floats and shifts horizontally
+            // to suggest a "delivery in progress" feeling.
+            val drive = rememberInfiniteTransition(label = "drive")
+            val translateX by drive.animateFloat(
+                initialValue = -20f,
+                targetValue = 20f,
+                animationSpec = infiniteRepeatable(tween(3200), RepeatMode.Reverse),
+                label = "scooter-x",
+            )
+            val bobY by drive.animateFloat(
+                initialValue = -3f,
+                targetValue = 3f,
+                animationSpec = infiniteRepeatable(tween(800), RepeatMode.Reverse),
+                label = "scooter-y",
+            )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -138,7 +164,9 @@ fun OrderTrackingScreen(
                         Icons.Rounded.DeliveryDining,
                         contentDescription = null,
                         tint = Neutral60,
-                        modifier = Modifier.size(56.dp),
+                        modifier = Modifier
+                            .size(56.dp)
+                            .graphicsLayer { translationX = translateX; translationY = bobY },
                     )
                     Spacer(Modifier.height(SahmSpacing.sm))
                     Text(
@@ -171,7 +199,16 @@ fun OrderTrackingScreen(
                             ),
                             color = Neutral95,
                         )
-                        StatusPill(currentStep = currentStep)
+                        AnimatedContent(
+                            targetState = currentStep,
+                            transitionSpec = {
+                                (scaleIn(tween(280), initialScale = 0.8f) + fadeIn(tween(280)))
+                                    .togetherWith(scaleOut(tween(180), targetScale = 0.8f) + fadeOut(tween(180)))
+                            },
+                            label = "status-pill",
+                        ) { step ->
+                            StatusPill(currentStep = step)
+                        }
                     }
                     Spacer(Modifier.height(SahmSpacing.xl))
                     PlazaOrderTracker(steps = steps, currentIndex = currentStep)
@@ -184,14 +221,15 @@ fun OrderTrackingScreen(
                         value = strings.trackingEstimatedTimeValue,
                     )
                     Spacer(Modifier.height(SahmSpacing.md))
+                    val lastUpdate = when (currentStep) {
+                        0 -> strings.trackingStatusReceived
+                        1 -> strings.trackingStatusPreparing
+                        else -> strings.trackingStatusReady
+                    }
                     InfoRow(
                         icon = Icons.Rounded.Update,
                         label = strings.trackingLastUpdate,
-                        value = when (currentStep) {
-                            0 -> strings.trackingStatusReceived
-                            1 -> strings.trackingStatusPreparing
-                            else -> strings.trackingStatusReady
-                        },
+                        value = lastUpdate,
                     )
                 }
             }
