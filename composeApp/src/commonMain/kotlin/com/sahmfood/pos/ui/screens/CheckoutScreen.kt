@@ -66,7 +66,7 @@ import com.sahmfood.pos.presentation.checkout.CheckoutIntent
 import com.sahmfood.pos.presentation.checkout.CheckoutStore
 import com.sahmfood.pos.ui.components.CheckoutSectionCard
 import com.sahmfood.pos.ui.components.OrderTotalCard
-import com.sahmfood.pos.ui.components.PlazaPrimaryButton
+import com.sahmfood.pos.ui.components.SahmPrimaryButton
 import com.sahmfood.pos.ui.theme.AccentBlue
 import com.sahmfood.pos.ui.theme.AccentTeal
 import com.sahmfood.pos.ui.theme.BrandPrimary
@@ -159,7 +159,7 @@ fun CheckoutScreen(
                         )
                     }
                     Spacer(Modifier.height(SahmSpacing.md))
-                    PlazaPrimaryButton(
+                    SahmPrimaryButton(
                         text = if (state.paymentMethod == PaymentMethod.CASH) strings.checkoutConfirmCash
                                else strings.checkoutConfirmCard,
                         onClick = { store.dispatch(CheckoutIntent.ConfirmPayment) },

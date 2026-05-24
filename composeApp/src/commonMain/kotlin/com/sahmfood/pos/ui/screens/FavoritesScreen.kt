@@ -41,7 +41,7 @@ import com.sahmfood.pos.presentation.catalog.CatalogIntent
 import com.sahmfood.pos.presentation.catalog.CatalogStore
 import com.sahmfood.pos.presentation.favorites.FavoritesIntent
 import com.sahmfood.pos.presentation.favorites.FavoritesStore
-import com.sahmfood.pos.ui.components.PlazaEmptyState
+import com.sahmfood.pos.ui.components.SahmEmptyState
 import com.sahmfood.pos.ui.components.categoryIcon
 import com.sahmfood.pos.ui.theme.BrandPrimary
 import com.sahmfood.pos.ui.theme.Neutral60
@@ -50,10 +50,10 @@ import com.sahmfood.pos.ui.theme.SahmRadius
 import com.sahmfood.pos.ui.theme.SahmSpacing
 import com.sahmfood.pos.ui.theme.pressScaleAuto
 import com.sahmfood.pos.ui.theme.categoryGradient
-import com.sahmfood.pos.ui.theme.plazaCardShadow
+import com.sahmfood.pos.ui.theme.sahmCardShadow
 
 /**
- * Plaza-style favorites tab — list of horizontal cards (image left,
+ * Sahm favorites tab — list of horizontal cards (image left,
  * details + add-to-cart button center, heart button right).
  *
  * Tapping a card opens product detail (callback). Tapping the heart
@@ -72,7 +72,7 @@ fun FavoritesScreen(
         state.isLoading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             androidx.compose.material3.CircularProgressIndicator(color = BrandPrimary)
         }
-        state.favoriteProducts.isEmpty() -> PlazaEmptyState(
+        state.favoriteProducts.isEmpty() -> SahmEmptyState(
             icon = Icons.Rounded.FavoriteBorder,
             title = com.sahmfood.pos.ui.strings.LocalSahmStrings.current.favoritesEmptyTitle,
             description = com.sahmfood.pos.ui.strings.LocalSahmStrings.current.favoritesEmptyDescription,
@@ -116,7 +116,7 @@ private fun FavoriteCard(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .plazaCardShadow(shape = RoundedCornerShape(SahmRadius.md), elevation = 2.dp)
+            .sahmCardShadow(shape = RoundedCornerShape(SahmRadius.md), elevation = 2.dp)
             .clickable(onClick = onTap),
         shape = RoundedCornerShape(SahmRadius.md),
         color = Color.White,

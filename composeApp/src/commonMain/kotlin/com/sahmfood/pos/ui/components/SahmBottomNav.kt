@@ -60,7 +60,7 @@ import com.sahmfood.pos.ui.theme.Neutral80
 import com.sahmfood.pos.ui.theme.pressScale
 
 /**
- * Plaza-style 5-tab bottom navigation.
+ * Sahm 5-tab bottom navigation.
  *
  * Design choices:
  *  - A single sliding "selection indicator" pill (orange container) glides
@@ -79,7 +79,7 @@ data class BottomTab(
     val iconIdle: ImageVector,
 )
 
-val PlazaBottomTabs = listOf(
+val SahmBottomTabs = listOf(
     BottomTab("home", Icons.Rounded.Home, Icons.Outlined.Home),
     BottomTab("cart", Icons.Rounded.ShoppingCart, Icons.Outlined.ShoppingCart),
     BottomTab("menu", Icons.Rounded.Category, Icons.Outlined.Category),
@@ -98,13 +98,13 @@ fun labelFor(key: String, str: com.sahmfood.pos.ui.strings.SahmStrings): String 
 }
 
 @Composable
-fun PlazaBottomNav(
+fun SahmBottomNav(
     selectedKey: String,
     onSelect: (String) -> Unit,
     cartCount: Int = 0,
     modifier: Modifier = Modifier,
 ) {
-    val selectedIndex = PlazaBottomTabs.indexOfFirst { it.key == selectedKey }
+    val selectedIndex = SahmBottomTabs.indexOfFirst { it.key == selectedKey }
         .coerceAtLeast(0)
 
     BoxWithConstraints(
@@ -121,7 +121,7 @@ fun PlazaBottomNav(
         // Outer container has 8dp horizontal padding; tiles each take 1/N of
         // the remaining width.
         val sidePadding = 8.dp
-        val cellWidth: Dp = (maxWidth - sidePadding * 2) / PlazaBottomTabs.size
+        val cellWidth: Dp = (maxWidth - sidePadding * 2) / SahmBottomTabs.size
         // The pill is slightly inset so it doesn't touch its neighbours.
         val pillInset = 6.dp
         val pillWidth = cellWidth - pillInset * 2
@@ -151,7 +151,7 @@ fun PlazaBottomNav(
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            PlazaBottomTabs.forEach { tab ->
+            SahmBottomTabs.forEach { tab ->
                 BottomNavTile(
                     tab = tab,
                     selected = selectedKey == tab.key,

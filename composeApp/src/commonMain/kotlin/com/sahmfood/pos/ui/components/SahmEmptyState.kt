@@ -46,11 +46,11 @@ import com.sahmfood.pos.ui.theme.SahmSpacing
 import com.sahmfood.pos.ui.theme.pressScaleAuto
 
 /**
- * Plaza empty state — 140dp tinted circle with brand-colored icon at 64dp,
+ * Sahm empty state — 140dp tinted circle with brand-colored icon at 64dp,
  * bold title, description, and a primary CTA pill below.
  */
 @Composable
-fun PlazaEmptyState(
+fun SahmEmptyState(
     icon: ImageVector,
     title: String,
     description: String,
@@ -108,17 +108,17 @@ fun PlazaEmptyState(
         )
         if (ctaLabel != null && onCta != null) {
             Spacer(Modifier.height(SahmSpacing.xxl))
-            PlazaPrimaryButton(text = ctaLabel, onClick = onCta)
+            SahmPrimaryButton(text = ctaLabel, onClick = onCta)
         }
     }
 }
 
 /**
- * Plaza-style primary button — orange gradient, white text, 56dp height,
+ * Sahm primary button — orange gradient, white text, 56dp height,
  * 16dp radius, brand-colored shadow. Canonical CTA across the app.
  */
 @Composable
-fun PlazaPrimaryButton(
+fun SahmPrimaryButton(
     text: String,
     onClick: () -> Unit,
     enabled: Boolean = true,

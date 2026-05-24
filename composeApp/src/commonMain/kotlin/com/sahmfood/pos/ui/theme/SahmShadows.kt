@@ -9,14 +9,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Plaza-style shadow recipes. Plaza uses flat surfaces (`elevation: 0`)
- * with manual BoxShadows for the lift. Compose's `Modifier.shadow` is the
- * closest equivalent, but only ambient/spot colors give us control over
- * tint — alpha is approximated.
+ * Sahm shadow recipes. The reference design uses flat surfaces
+ * (`elevation: 0`) with manual BoxShadows for the lift. Compose's
+ * `Modifier.shadow` is the closest equivalent, but only ambient/spot
+ * colors give us control over tint — alpha is approximated.
  */
 
 /** Card resting shadow — black @ 4%, blur 8, offset y2. */
-fun Modifier.plazaCardShadow(
+fun Modifier.sahmCardShadow(
     shape: Shape = RoundedCornerShape(12.dp),
     elevation: Dp = 2.dp,
 ): Modifier = shadow(
@@ -27,7 +27,7 @@ fun Modifier.plazaCardShadow(
 )
 
 /** Premium card shadow — black @ 5%, blur 10, offset y4. */
-fun Modifier.plazaCardShadowRaised(
+fun Modifier.sahmCardShadowRaised(
     shape: Shape = RoundedCornerShape(16.dp),
     elevation: Dp = 4.dp,
 ): Modifier = shadow(
@@ -38,7 +38,7 @@ fun Modifier.plazaCardShadowRaised(
 )
 
 /** Primary-tinted shadow used on brand CTAs and the floating cart FAB. */
-fun Modifier.plazaBrandShadow(
+fun Modifier.sahmBrandShadow(
     shape: Shape,
     elevation: Dp = 8.dp,
     color: Color = BrandPrimary,
@@ -50,7 +50,7 @@ fun Modifier.plazaBrandShadow(
 )
 
 /** Bottom-bar shadow (upward) — black @ 6%, blur 12, offset y-2. */
-fun Modifier.plazaBottomBarShadow(
+fun Modifier.sahmBottomBarShadow(
     shape: Shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
 ): Modifier = shadow(
     elevation = 6.dp,

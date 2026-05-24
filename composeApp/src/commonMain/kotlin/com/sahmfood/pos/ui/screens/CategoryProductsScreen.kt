@@ -37,7 +37,7 @@ import com.sahmfood.pos.presentation.catalog.CatalogIntent
 import com.sahmfood.pos.presentation.catalog.CatalogStore
 import com.sahmfood.pos.presentation.favorites.FavoritesIntent
 import com.sahmfood.pos.presentation.favorites.FavoritesStore
-import com.sahmfood.pos.ui.components.PlazaEmptyState
+import com.sahmfood.pos.ui.components.SahmEmptyState
 import com.sahmfood.pos.ui.components.ProductCard
 import com.sahmfood.pos.ui.theme.Neutral5
 import com.sahmfood.pos.ui.theme.Neutral60
@@ -109,7 +109,7 @@ fun CategoryProductsScreen(
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize().background(Neutral5)) {
             if (products.isEmpty()) {
-                PlazaEmptyState(
+                SahmEmptyState(
                     icon = Icons.Rounded.ShoppingBag,
                     title = strings.categoryNoItemsTitle(titleLabel),
                     description = strings.categoryNoItemsDescription,

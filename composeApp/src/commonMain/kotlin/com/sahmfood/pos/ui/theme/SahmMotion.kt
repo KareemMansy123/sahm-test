@@ -26,7 +26,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 
 /**
  * Centralised motion vocabulary. Every animation in the app should pull from
- * this file so durations and easings stay consistent. Plaza-faithful tone:
+ * this file so durations and easings stay consistent. Sahm tone:
  * spring-y but never rubbery, never longer than ~400ms for state transitions.
  *
  * Three tiers of spec exist:

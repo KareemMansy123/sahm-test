@@ -3,7 +3,7 @@ package com.sahmfood.pos.ui.theme
 import androidx.compose.ui.unit.dp
 
 /**
- * Spacing scale — Plaza app uses 16 as the dominant value with 4/8/12 for
+ * Spacing scale — reference app uses 16 as the dominant value with 4/8/12 for
  * tighter gaps and 20/24/32 for hero padding.
  */
 object SahmSpacing {
@@ -19,7 +19,7 @@ object SahmSpacing {
 }
 
 /**
- * Border radii — Plaza scale.
+ * Border radii — dimension scale.
  * 12 is the default everywhere; 16 for premium cards; 8 for small chips;
  * 24 for bottom-sheet top corners; full-round (50%+) for circular avatars.
  */

@@ -29,13 +29,13 @@ import com.sahmfood.pos.ui.theme.SahmRadius
 import com.sahmfood.pos.ui.theme.SahmSpacing
 
 /**
- * Plaza's "Deliver to" header bar. We repurpose it for the POS as a
+ * the app's "Deliver to" header bar. We repurpose it for the POS as a
  * register / cashier identification strip: small location icon, a label
  * ("Cashier" or "Register"), then the cashier name, with a downward
  * chevron suggesting it could open a switcher.
  */
 @Composable
-fun PlazaAddressHeader(
+fun SahmAddressHeader(
     label: String? = null,
     value: String? = null,
     onClick: () -> Unit = {},

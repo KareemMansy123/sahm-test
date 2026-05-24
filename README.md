@@ -55,11 +55,10 @@ engineering thinking, not a tutorial-grade app. Concretely:
   `CheckoutOrder`, `RankItemsByVolume`, etc. ✅
 - **Dependency Injection** — Koin modules per concern, platform-specific
   Android Context + DB injected via `platformModule`. ✅
-- **Premium UI matching Nana / Sahm / Plaza reference quality** — pixel-
-  faithful port of the Plaza order-app design language: orange brand
-  gradient, pastel-cycled category circles, Plaza-signature hero banner,
-  sliding bottom-nav pill, NFC tap-card pulse on checkout, animated order
-  tracker. ✅
+- **Premium UI matching reference food-delivery apps like Nana and Sahm** —
+  orange brand gradient, pastel-cycled category circles, signature hero
+  banner, sliding bottom-nav pill, NFC tap-card pulse on checkout,
+  animated order tracker. ✅
 - **Multi-agent workflow** — the build used dedicated agents for design
   audit, architecture review, code review, and testing (see prompts
   section below). ✅
@@ -87,8 +86,8 @@ arch, use cases, DI, premium UI, multi-agent. Every later prompt referenced
 
 ### 2. Reference real apps, not adjectives
 
-> "look at Plaza-app, Nana, Sahm — clone the design language, don't invent
-> one"
+> "look at the reference food-delivery apps Nana and Sahm — clone the
+> design language, don't invent one"
 
 Vague prompts like "make it beautiful" produce Material-default UIs. Naming
 specific apps the model could pattern-match against produced the orange
@@ -98,9 +97,9 @@ gradient, pastel cycles, and signature decorative circles.
 
 For non-trivial review tasks the prompts always specified a sub-agent type:
 
-> "Use the general-purpose agent to audit `/Users/.../Plaza-app` and produce
-> a 1300-line widget-anatomy breakdown to `/tmp/plaza-anatomy.md`. Don't
-> propose changes, just enumerate."
+> "Use the general-purpose agent to audit the reference app at
+> `/Users/.../reference-app` and produce a 1300-line widget-anatomy
+> breakdown to `/tmp/anatomy.md`. Don't propose changes, just enumerate."
 
 > "Use the code-reviewer agent to second-opinion this migration."
 
@@ -153,7 +152,7 @@ sahm-food-pos/
 │           ├── di/AppModule.kt       Wires Koin modules together
 │           └── ui/
 │               ├── screens/          13 screens (Catalog, Cart, Checkout, …)
-│               ├── components/       21 reusable Plaza components
+│               ├── components/       21 reusable Sahm-branded components
 │               ├── theme/            SahmColors, SahmTypography, SahmMotion
 │               └── strings/          SahmStrings + English/Arabic implementations
 │
@@ -281,11 +280,11 @@ composeApp/src/commonMain/kotlin/com/sahmfood/pos/
     │   ├── ProfileScreen.kt
     │   └── SettingsStubScreens.kt       # Switch register, Printer, Preferences, Help
     ├── components/
-    │   ├── PlazaBottomNav.kt            # Sliding indicator pill + icon pop
-    │   ├── PlazaHomeBanner.kt           # Breathing decorative circles
-    │   ├── PlazaSearchBar.kt            # Focus glow border
-    │   ├── PlazaOrderTracker.kt         # Animated step circles
-    │   ├── PlazaFloatingCartFab.kt      # Pulse trigger on cart add
+    │   ├── SahmBottomNav.kt             # Sliding indicator pill + icon pop
+    │   ├── SahmHomeBanner.kt            # Breathing decorative circles
+    │   ├── SahmSearchBar.kt             # Focus glow border
+    │   ├── SahmOrderTracker.kt          # Animated step circles
+    │   ├── SahmFloatingCartFab.kt       # Pulse trigger on cart add
     │   ├── AiFloatingButton.kt          # Radiating pulse ring
     │   ├── ProductCard.kt, CartLineItem.kt, CategoryStrip.kt, …
     │   └── (21 components total)
@@ -294,7 +293,7 @@ composeApp/src/commonMain/kotlin/com/sahmfood/pos/
     │   ├── SahmTypography.kt
     │   ├── SahmDimensions.kt            # Spacing, radius, duration tokens
     │   ├── SahmMotion.kt                # Springs, enter/exit specs, Modifier.pressScale
-    │   ├── SahmShadows.kt               # Plaza card shadow recipes
+    │   ├── SahmShadows.kt               # Card shadow recipes
     │   └── SahmTheme.kt                 # MaterialTheme wrapper + LocalSahmStrings provider
     └── strings/
         ├── SahmStrings.kt               # ~190-key interface
@@ -310,7 +309,7 @@ composeApp/src/commonMain/kotlin/com/sahmfood/pos/
 
 What you can actually do in the app:
 
-- **Browse** a Plaza-style home: pastel category circles, product grid,
+- **Browse** the home tab: pastel category circles, product grid,
   search with focus glow, breathing hero banner.
 - **Open a product** in a detail sheet — quantity stepper with digit flip,
   bilingual name + category badge, Add-to-Order CTA.
@@ -400,7 +399,7 @@ hand-rolled `Fake*Repository` implementations from `commonTest`.
 - **Real iOS rendering** — the iOS target compiles and the shared logic
   runs, but I haven't hand-tuned the SwiftUI host or verified the
   Compose Multiplatform iOS frame rate. Worth a few days.
-- **Snapshot tests** for every Plaza component using Paparazzi-style
+- **Snapshot tests** for every UI component using Paparazzi-style
   rendering (or the new Roborazzi for Compose).
 - **Real sync worker** — `SyncWorker` and `StubRemoteApiService` are
   scaffolded but never fire. Wiring them to a real backend (or a

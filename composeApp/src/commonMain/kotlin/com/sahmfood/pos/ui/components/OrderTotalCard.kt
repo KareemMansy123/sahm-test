@@ -32,7 +32,7 @@ import com.sahmfood.pos.ui.theme.SahmDurations
 import com.sahmfood.pos.ui.theme.SahmSpacing
 
 /**
- * Plaza-style order summary block. Used inside the pinned bottom summary
+ * Sahm order summary block. Used inside the pinned bottom summary
  * on the cart screen and as the "Order Summary" section on checkout.
  *
  * Lines: subtotal, tax (14%), discount (optional), total. Total flips with
@@ -95,7 +95,7 @@ fun OrderTotalCard(
         }
         if (showButton) {
             Spacer(Modifier.height(SahmSpacing.sm))
-            PlazaPrimaryButton(
+            SahmPrimaryButton(
                 text = chargeLabel,
                 onClick = onCharge,
                 enabled = chargeEnabled,

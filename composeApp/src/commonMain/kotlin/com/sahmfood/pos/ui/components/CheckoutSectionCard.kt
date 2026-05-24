@@ -25,10 +25,10 @@ import com.sahmfood.pos.ui.theme.BrandPrimary
 import com.sahmfood.pos.ui.theme.Neutral95
 import com.sahmfood.pos.ui.theme.SahmRadius
 import com.sahmfood.pos.ui.theme.SahmSpacing
-import com.sahmfood.pos.ui.theme.plazaCardShadowRaised
+import com.sahmfood.pos.ui.theme.sahmCardShadowRaised
 
 /**
- * Plaza checkout section card. Standardized white card with a brand-colored
+ * Sahm checkout section card. Standardized white card with a brand-colored
  * leading icon, bold title, optional trailing action, and arbitrary content.
  */
 @Composable
@@ -42,7 +42,7 @@ fun CheckoutSectionCard(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .plazaCardShadowRaised(shape = RoundedCornerShape(SahmRadius.lg)),
+            .sahmCardShadowRaised(shape = RoundedCornerShape(SahmRadius.lg)),
         shape = RoundedCornerShape(SahmRadius.lg),
         color = Color.White,
     ) {

@@ -41,7 +41,7 @@ import com.sahmfood.pos.ui.theme.SahmSpacing
 import com.sahmfood.pos.ui.theme.categoryPastel
 
 /**
- * Plaza-style category strip — pastel-cycled circular icons with two-line
+ * Sahm category strip — pastel-cycled circular icons with two-line
  * label below. Selected state lifts the icon and darkens to brand color.
  */
 @Composable

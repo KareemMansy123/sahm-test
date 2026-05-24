@@ -19,7 +19,7 @@ import com.sahmfood.pos.ui.theme.ShimmerHighlight
 /**
  * Shimmer modifier. Apply on a sized Box / Surface; the gradient sweeps
  * horizontally across the surface to indicate loading state. Mirrors the
- * `shimmer` package used in Plaza-app.
+ * `shimmer` package used in reference app.
  */
 fun Modifier.shimmer(): Modifier = composed {
     val transition = rememberInfiniteTransition(label = "shimmer")

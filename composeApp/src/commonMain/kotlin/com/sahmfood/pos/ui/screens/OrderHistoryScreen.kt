@@ -57,7 +57,7 @@ import com.sahmfood.pos.domain.entities.Order
 import com.sahmfood.pos.domain.entities.OrderStatus
 import com.sahmfood.pos.domain.entities.PaymentMethod
 import com.sahmfood.pos.presentation.history.HistoryStore
-import com.sahmfood.pos.ui.components.PlazaEmptyState
+import com.sahmfood.pos.ui.components.SahmEmptyState
 import com.sahmfood.pos.ui.theme.AccentBlue
 import com.sahmfood.pos.ui.theme.BrandPrimary
 import com.sahmfood.pos.ui.theme.BrandPrimaryContainer
@@ -72,7 +72,7 @@ import com.sahmfood.pos.ui.theme.SahmSpacing
 import com.sahmfood.pos.ui.theme.SahmSuccess
 import com.sahmfood.pos.ui.theme.SahmWarning
 import com.sahmfood.pos.ui.theme.SecondaryColorLight
-import com.sahmfood.pos.ui.theme.plazaCardShadow
+import com.sahmfood.pos.ui.theme.sahmCardShadow
 import com.sahmfood.pos.ui.theme.pressScaleAuto
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
@@ -172,7 +172,7 @@ fun OrderHistoryScreen(
             Spacer(Modifier.height(SahmSpacing.md))
             // Order list
             if (filtered.isEmpty()) {
-                PlazaEmptyState(
+                SahmEmptyState(
                     icon = Icons.Rounded.ReceiptLong,
                     title = strings.historyEmpty,
                     description = strings.historyEmpty,
@@ -298,7 +298,7 @@ private fun OrderHistoryCard(order: Order, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .plazaCardShadow(shape = RoundedCornerShape(SahmRadius.md), elevation = 2.dp),
+            .sahmCardShadow(shape = RoundedCornerShape(SahmRadius.md), elevation = 2.dp),
         shape = RoundedCornerShape(SahmRadius.md),
         color = Color.White,
     ) {

@@ -53,10 +53,10 @@ import com.sahmfood.pos.ui.theme.SahmRadius
 import com.sahmfood.pos.ui.theme.SahmSpacing
 import com.sahmfood.pos.ui.theme.pressScaleAuto
 import com.sahmfood.pos.ui.theme.categoryGradient
-import com.sahmfood.pos.ui.theme.plazaCardShadow
+import com.sahmfood.pos.ui.theme.sahmCardShadow
 
 /**
- * Plaza cart item card — 90dp square thumbnail (12dp radius), express badge,
+ * Sahm cart item card — 90dp square thumbnail (12dp radius), express badge,
  * product name (14sp w600), inline qty controls + price.
  */
 @Composable
@@ -70,7 +70,7 @@ fun CartLineItem(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .plazaCardShadow(shape = RoundedCornerShape(SahmRadius.lg), elevation = 2.dp),
+            .sahmCardShadow(shape = RoundedCornerShape(SahmRadius.lg), elevation = 2.dp),
         shape = RoundedCornerShape(SahmRadius.lg),
         color = Color.White,
     ) {

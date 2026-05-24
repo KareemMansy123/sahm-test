@@ -26,7 +26,7 @@ import com.sahmfood.pos.ui.theme.BrandPrimary
 import com.sahmfood.pos.ui.theme.BrandPrimaryLight
 
 /**
- * Plaza-style AI Assistant floating button — circular with a pulsing ring
+ * Sahm AI Assistant floating button — circular with a pulsing ring
  * behind it. Lives at bottom-start, raised above the bottom-nav.
  */
 @Composable

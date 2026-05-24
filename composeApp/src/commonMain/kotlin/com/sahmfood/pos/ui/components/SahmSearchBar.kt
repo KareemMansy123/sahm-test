@@ -39,11 +39,11 @@ import com.sahmfood.pos.ui.theme.SahmRadius
 import com.sahmfood.pos.ui.theme.SahmSpacing
 
 /**
- * Plaza's clean white search bar — 8dp radius, soft shadow, leading search
+ * the app's clean white search bar — 8dp radius, soft shadow, leading search
  * icon and a trailing barcode-scan affordance in brand color.
  */
 @Composable
-fun PlazaSearchBar(
+fun SahmSearchBar(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String? = null,

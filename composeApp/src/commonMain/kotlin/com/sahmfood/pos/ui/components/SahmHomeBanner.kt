@@ -41,14 +41,14 @@ import com.sahmfood.pos.ui.theme.SahmSpacing
 import com.sahmfood.pos.ui.theme.pressScaleAuto
 
 /**
- * Plaza's signature hero banner. Orange gradient surface with decorative
+ * the app's signature hero banner. Orange gradient surface with decorative
  * white circles, large headline, subtitle, and a white pill CTA.
  *
  * For the POS we use it to surface a daily-sales callout or a promotional
  * combo. Tap calls back via [onCtaClick].
  */
 @Composable
-fun PlazaHomeBanner(
+fun SahmHomeBanner(
     title: String,
     subtitle: String,
     ctaLabel: String,
@@ -73,7 +73,7 @@ fun PlazaHomeBanner(
                 ),
             ),
     ) {
-        // Decorative circles (Plaza signature). Use offset (signed) instead of
+        // Decorative circles (signature). Use offset (signed) instead of
         // padding (which throws on negative values). The parent Box clips to
         // the banner shape, so the offset circles peek visibly from each
         // corner without bleeding outside the card silhouette.

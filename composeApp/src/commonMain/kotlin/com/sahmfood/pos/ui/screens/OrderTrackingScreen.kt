@@ -61,7 +61,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sahmfood.pos.ui.components.OrderStep
-import com.sahmfood.pos.ui.components.PlazaOrderTracker
+import com.sahmfood.pos.ui.components.SahmOrderTracker
 import com.sahmfood.pos.ui.theme.BrandPrimary
 import com.sahmfood.pos.ui.theme.Neutral20
 import com.sahmfood.pos.ui.theme.Neutral5
@@ -71,14 +71,14 @@ import com.sahmfood.pos.ui.theme.SahmRadius
 import com.sahmfood.pos.ui.theme.SahmSpacing
 import com.sahmfood.pos.ui.theme.SahmSuccess
 import com.sahmfood.pos.ui.theme.SahmWarning
-import com.sahmfood.pos.ui.theme.plazaCardShadowRaised
+import com.sahmfood.pos.ui.theme.sahmCardShadowRaised
 import kotlinx.coroutines.delay
 
 /**
- * Plaza-inspired order tracking — for a POS this maps to the kitchen
+ * Sahm order tracking — for a POS this maps to the kitchen
  * preparation status. Steps: Received → Preparing → Ready.
  *
- * The current step gets a glow ring (the Plaza signature). On entry, the
+ * The current step gets a glow ring (the signature). On entry, the
  * screen auto-advances every 4 seconds to demo the tracker.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -181,7 +181,7 @@ fun OrderTrackingScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(SahmSpacing.lg)
-                    .plazaCardShadowRaised(shape = RoundedCornerShape(SahmRadius.lg)),
+                    .sahmCardShadowRaised(shape = RoundedCornerShape(SahmRadius.lg)),
                 shape = RoundedCornerShape(SahmRadius.lg),
                 color = Color.White,
             ) {
@@ -211,7 +211,7 @@ fun OrderTrackingScreen(
                         }
                     }
                     Spacer(Modifier.height(SahmSpacing.xl))
-                    PlazaOrderTracker(steps = steps, currentIndex = currentStep)
+                    SahmOrderTracker(steps = steps, currentIndex = currentStep)
                     Spacer(Modifier.height(SahmSpacing.xl))
                     HorizontalDivider(color = Neutral20, thickness = 1.dp)
                     Spacer(Modifier.height(SahmSpacing.lg))

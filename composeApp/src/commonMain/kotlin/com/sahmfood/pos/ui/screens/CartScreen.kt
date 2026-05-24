@@ -40,7 +40,7 @@ import com.sahmfood.pos.presentation.catalog.CatalogIntent
 import com.sahmfood.pos.presentation.catalog.CatalogStore
 import com.sahmfood.pos.ui.components.CartLineItem
 import com.sahmfood.pos.ui.components.OrderTotalCard
-import com.sahmfood.pos.ui.components.PlazaEmptyState
+import com.sahmfood.pos.ui.components.SahmEmptyState
 import com.sahmfood.pos.ui.theme.BrandPrimary
 import com.sahmfood.pos.ui.theme.Neutral5
 import com.sahmfood.pos.ui.theme.Neutral95
@@ -99,7 +99,7 @@ fun CartScreen(
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
             if (state.isCartEmpty) {
-                PlazaEmptyState(
+                SahmEmptyState(
                     icon = Icons.Rounded.ShoppingBag,
                     title = strings.cartEmptyTitle,
                     description = strings.cartEmptyDescription,

@@ -46,9 +46,9 @@ import com.sahmfood.pos.presentation.catalog.CatalogStore
 import com.sahmfood.pos.presentation.favorites.FavoritesIntent
 import com.sahmfood.pos.presentation.favorites.FavoritesStore
 import com.sahmfood.pos.ui.components.CategoryStrip
-import com.sahmfood.pos.ui.components.PlazaAddressHeader
-import com.sahmfood.pos.ui.components.PlazaHomeBanner
-import com.sahmfood.pos.ui.components.PlazaSearchBar
+import com.sahmfood.pos.ui.components.SahmAddressHeader
+import com.sahmfood.pos.ui.components.SahmHomeBanner
+import com.sahmfood.pos.ui.components.SahmSearchBar
 import com.sahmfood.pos.ui.components.ProductCard
 import com.sahmfood.pos.ui.theme.BrandPrimary
 import com.sahmfood.pos.ui.theme.BrandPrimaryContainer
@@ -60,10 +60,10 @@ import com.sahmfood.pos.ui.theme.SahmSpacing
 /**
  * Home tab content (no Scaffold — MainScreen owns the bottom nav).
  *
- * - PlazaAddressHeader (top)
+ * - SahmAddressHeader (top)
  * - Notification bell (right of header)
- * - PlazaSearchBar
- * - PlazaHomeBanner (orange gradient promo)
+ * - SahmSearchBar
+ * - SahmHomeBanner (orange gradient promo)
  * - CategoryStrip (pastel circles)
  * - Product grid (LazyVerticalGrid, hearts wired to FavoritesStore)
  */
@@ -109,18 +109,18 @@ fun CatalogScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        PlazaAddressHeader(modifier = Modifier.weight(1f))
+                        SahmAddressHeader(modifier = Modifier.weight(1f))
                         NotificationBell(modifier = Modifier.padding(end = SahmSpacing.lg))
                     }
                     Spacer(Modifier.height(SahmSpacing.sm))
                     Box(modifier = Modifier.padding(horizontal = SahmSpacing.lg)) {
-                        PlazaSearchBar(
+                        SahmSearchBar(
                             value = state.searchQuery,
                             onValueChange = { store.dispatch(CatalogIntent.SetSearchQuery(it)) },
                         )
                     }
                     Spacer(Modifier.height(SahmSpacing.lg))
-                    PlazaHomeBanner(
+                    SahmHomeBanner(
                         title = strings.homeBannerTitle,
                         subtitle = strings.homeBannerSubtitle,
                         ctaLabel = strings.homeBannerCta,

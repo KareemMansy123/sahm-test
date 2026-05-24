@@ -36,7 +36,7 @@ import com.sahmfood.pos.ui.theme.Neutral95
 import com.sahmfood.pos.ui.theme.SahmSpacing
 
 /**
- * Plaza's signature 3-step order tracker. Each step is a 56dp filled
+ * the app's signature 3-step order tracker. Each step is a 56dp filled
  * circle. Completed steps fill in brand color; the current step gets a
  * primary-colored glow ring; future steps are flat grey.
  */
@@ -46,7 +46,7 @@ data class OrderStep(
 )
 
 @Composable
-fun PlazaOrderTracker(
+fun SahmOrderTracker(
     steps: List<OrderStep>,
     currentIndex: Int,
     modifier: Modifier = Modifier,

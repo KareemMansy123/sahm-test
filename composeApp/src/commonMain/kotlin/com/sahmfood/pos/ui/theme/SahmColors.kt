@@ -6,8 +6,8 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 
 /**
- * Sahm Food POS palette — adopts the Plaza-app design language.
- * Plaza is a vibrant orange brand on a soft-grey neutral canvas.
+ * Sahm Food POS palette — adopts the reference app design language.
+ * The reference design is a vibrant orange brand on a soft-grey neutral canvas.
  */
 
 // Brand
@@ -31,7 +31,7 @@ val ExpressColor = Color(0xFF00BFA5)      // teal — express badge
 val FreeDeliveryColor = Color(0xFF00C853)
 val AccentTeal = Color(0xFF00BFA5)        // alias kept for back-compat
 
-// Neutrals — Plaza's clean grey scale
+// Neutrals — the app's clean grey scale
 val Neutral0 = Color(0xFFFFFFFF)
 val Neutral5 = Color(0xFFF7F7F7)          // background
 val Neutral10 = Color(0xFFF3F4F6)         // image placeholder bg
@@ -68,7 +68,7 @@ val DealColor = Color(0xFF00C853)
 val ShimmerBase = Color(0xFFE0E0E0)
 val ShimmerHighlight = Color(0xFFF5F5F5)
 
-// Pastel cycle for category circles (Plaza pattern)
+// Pastel cycle for category circles (pastel pattern)
 val CategoryPastels = listOf(
     Color(0xFFE8F5E9), // light green
     Color(0xFFFFF3E0), // light orange
@@ -134,7 +134,7 @@ val SahmLightColors: ColorScheme = lightColorScheme(
     surfaceTint = BrandPrimary,
 )
 
-// Dark theme — Plaza doesn't ship one; we provide a sensible inversion.
+// Dark theme — Reference apps don't ship a dark theme; we provide a sensible inversion.
 val SahmDarkColors: ColorScheme = darkColorScheme(
     primary = BrandPrimaryLight,
     onPrimary = Color(0xFF3D1A00),

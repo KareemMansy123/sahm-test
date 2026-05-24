@@ -63,7 +63,7 @@ import com.sahmfood.pos.domain.entities.Money
 import com.sahmfood.pos.domain.entities.Product
 import com.sahmfood.pos.presentation.favorites.FavoritesIntent
 import com.sahmfood.pos.presentation.favorites.FavoritesStore
-import com.sahmfood.pos.ui.components.PlazaPrimaryButton
+import com.sahmfood.pos.ui.components.SahmPrimaryButton
 import com.sahmfood.pos.ui.components.categoryIcon
 import com.sahmfood.pos.ui.theme.BrandPrimary
 import com.sahmfood.pos.ui.theme.ExpressColor
@@ -80,7 +80,7 @@ import com.sahmfood.pos.ui.theme.SahmSpacing
 import com.sahmfood.pos.ui.theme.categoryGradient
 
 /**
- * Plaza-style product details screen. Full-screen image hero on top
+ * Sahm product details screen. Full-screen image hero on top
  * with floating circular nav buttons over a fade gradient, then
  * stacked info cards (overview / description / specs), and a sticky
  * Add-to-Order bar at the bottom with an inline qty stepper.
@@ -348,7 +348,7 @@ fun ProductDetailScreen(
                 }
                 Spacer(Modifier.width(SahmSpacing.md))
                 Box(modifier = Modifier.weight(1f)) {
-                    PlazaPrimaryButton(
+                    SahmPrimaryButton(
                         text = strings.productAddToOrderTemplate(total.toDisplayString()),
                         leadingIcon = Icons.Rounded.ShoppingBag,
                         onClick = { onAddToCart(quantity) },

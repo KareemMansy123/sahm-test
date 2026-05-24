@@ -39,11 +39,11 @@ import com.sahmfood.pos.ui.theme.BrandPrimaryLight
 import com.sahmfood.pos.ui.theme.SahmError
 
 /**
- * Plaza's floating cart FAB — 60dp gradient circle with a red item-count
+ * the app's floating cart FAB — 60dp gradient circle with a red item-count
  * badge. Pulse-bounces when the count changes.
  */
 @Composable
-fun PlazaFloatingCartFab(
+fun SahmFloatingCartFab(
     count: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,

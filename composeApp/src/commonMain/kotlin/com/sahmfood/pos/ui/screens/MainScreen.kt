@@ -44,9 +44,9 @@ import com.sahmfood.pos.presentation.settings.AppSettingsStore
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ShoppingBag
 import com.sahmfood.pos.ui.components.AiFloatingButton
-import com.sahmfood.pos.ui.components.PlazaBottomNav
-import com.sahmfood.pos.ui.components.PlazaBottomTabs
-import com.sahmfood.pos.ui.components.PlazaEmptyState
+import com.sahmfood.pos.ui.components.SahmBottomNav
+import com.sahmfood.pos.ui.components.SahmBottomTabs
+import com.sahmfood.pos.ui.components.SahmEmptyState
 import com.sahmfood.pos.ui.components.ProductCard
 import com.sahmfood.pos.ui.theme.Neutral5
 import com.sahmfood.pos.ui.theme.Neutral95
@@ -54,10 +54,10 @@ import com.sahmfood.pos.ui.theme.SahmSpacing
 import kotlinx.coroutines.launch
 
 /**
- * Plaza-style MainScreen scaffold.
+ * Sahm MainScreen scaffold.
  *
- * HorizontalPager body (5 tabs, user-scroll disabled to mirror Plaza's
- * tap-only navigation) + custom bottom nav + AI floating button raised
+ * HorizontalPager body (5 tabs, user-scroll disabled — navigation is
+ * tap-only via the bottom nav) + custom bottom nav + AI floating button raised
  * above the nav.
  *
  * The Cart and Orders tabs delegate to the CartScreen / OrderHistoryScreen
@@ -81,12 +81,12 @@ fun MainScreen(
     onOpenHelp: () -> Unit,
 ) {
     val catalogState by catalogStore.state.collectAsState()
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { PlazaBottomTabs.size })
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { SahmBottomTabs.size })
     val scope = rememberCoroutineScope()
-    var selectedTabKey by remember { mutableStateOf(PlazaBottomTabs.first().key) }
+    var selectedTabKey by remember { mutableStateOf(SahmBottomTabs.first().key) }
 
     LaunchedEffect(pagerState.currentPage) {
-        selectedTabKey = PlazaBottomTabs[pagerState.currentPage].key
+        selectedTabKey = SahmBottomTabs[pagerState.currentPage].key
     }
 
     Box(modifier = Modifier.fillMaxSize().background(Neutral5)) {
@@ -96,7 +96,7 @@ fun MainScreen(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 userScrollEnabled = false,
             ) { page ->
-                when (PlazaBottomTabs[page].key) {
+                when (SahmBottomTabs[page].key) {
                     "home" -> CatalogScreen(
                         store = catalogStore,
                         favoritesStore = favoritesStore,
@@ -125,11 +125,11 @@ fun MainScreen(
                     )
                 }
             }
-            PlazaBottomNav(
+            SahmBottomNav(
                 selectedKey = selectedTabKey,
                 cartCount = catalogState.cartItemCount,
                 onSelect = { key ->
-                    val idx = PlazaBottomTabs.indexOfFirst { it.key == key }
+                    val idx = SahmBottomTabs.indexOfFirst { it.key == key }
                     if (idx >= 0) {
                         scope.launch { pagerState.animateScrollToPage(idx, animationSpec = tween(420)) }
                     }
@@ -195,7 +195,7 @@ private fun CategoriesTabBody(
             )
             Spacer(Modifier.padding(top = SahmSpacing.md))
             if (state.categories.isEmpty()) {
-                PlazaEmptyState(
+                SahmEmptyState(
                     icon = Icons.Rounded.ShoppingBag,
                     title = strings.categoriesEmptyTitle,
                     description = strings.categoriesEmptyDescription,

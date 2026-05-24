@@ -51,7 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sahmfood.pos.presentation.checkout.CheckoutIntent
 import com.sahmfood.pos.presentation.checkout.CheckoutStore
-import com.sahmfood.pos.ui.components.PlazaPrimaryButton
+import com.sahmfood.pos.ui.components.SahmPrimaryButton
 import com.sahmfood.pos.ui.components.ReceiptPreview
 import com.sahmfood.pos.ui.theme.BrandPrimary
 import com.sahmfood.pos.ui.theme.BrandPrimaryLight
@@ -175,7 +175,7 @@ fun ReceiptScreen(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = SahmSpacing.lg),
                 verticalArrangement = Arrangement.spacedBy(SahmSpacing.sm),
             ) {
-                PlazaPrimaryButton(
+                SahmPrimaryButton(
                     text = strings.receiptTrackOrder,
                     onClick = onTrackOrder,
                     leadingIcon = Icons.Rounded.Visibility,

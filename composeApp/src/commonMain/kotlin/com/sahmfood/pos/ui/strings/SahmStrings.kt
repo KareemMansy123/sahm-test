@@ -7,7 +7,7 @@ package com.sahmfood.pos.ui.strings
  * AppSettingsStore.
  *
  * Why not Compose-MPP XML resources? Two reasons:
- *  1. Plaza/Sahm POS needs runtime language switching without restarting
+ *  1. Sahm POS needs runtime language switching without restarting
  *     the activity. Compose-MPP's stringResource reads the platform
  *     locale; overriding it cleanly per-composition is the same effort
  *     as this approach but uglier.

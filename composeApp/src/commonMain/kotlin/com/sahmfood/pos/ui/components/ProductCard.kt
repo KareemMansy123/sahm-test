@@ -53,10 +53,10 @@ import com.sahmfood.pos.ui.theme.RatingColor
 import com.sahmfood.pos.ui.theme.SahmError
 import com.sahmfood.pos.ui.theme.SahmRadius
 import com.sahmfood.pos.ui.theme.categoryGradient
-import com.sahmfood.pos.ui.theme.plazaCardShadow
+import com.sahmfood.pos.ui.theme.sahmCardShadow
 
 /**
- * Plaza-style product card. White surface with subtle shadow, image hero
+ * Sahm product card. White surface with subtle shadow, image hero
  * top with overlays (express badge, favorite, floating + add).
  *
  * - Card body tap → product detail
@@ -90,7 +90,7 @@ fun ProductCard(
         modifier = modifier
             .fillMaxWidth()
             .graphicsLayer { scaleX = scale; scaleY = scale }
-            .plazaCardShadow(shape = RoundedCornerShape(SahmRadius.md))
+            .sahmCardShadow(shape = RoundedCornerShape(SahmRadius.md))
             .clickable(interactionSource = interaction, indication = null) { onCardTap() },
         shape = RoundedCornerShape(SahmRadius.md),
         color = Color.White,
@@ -110,7 +110,7 @@ fun ProductCard(
                     modifier = Modifier.align(Alignment.Center).size(56.dp),
                 )
 
-                // Top-right favorite heart (Plaza signature)
+                // Top-right favorite heart (signature)
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
