@@ -12,6 +12,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.sahmfood.pos.data.seed.MenuSeedData
@@ -85,6 +86,14 @@ fun App() {
         val backstack = remember { mutableStateListOf<Route>(Route.Main) }
         val current = backstack.last()
 
+        // MainScreen tab state lives HERE, not inside MainScreen itself.
+        // Reason: AnimatedContent disposes MainScreen when we navigate to
+        // a deeper route (e.g. ProductDetail). If the tab index lived
+        // inside MainScreen it would reset to 0 every time we popped back,
+        // which is why "open Categories → tap item → back" used to land
+        // on Home instead of Categories.
+        var selectedTabIndex by remember { mutableStateOf(0) }
+
         fun push(next: Route) {
             // Avoid pushing the same destination twice in a row (defends
             // against double taps).
@@ -147,6 +156,8 @@ fun App() {
                     favoritesStore = favoritesStore,
                     historyStore = historyStore,
                     settings = settings,
+                    initialTabIndex = selectedTabIndex,
+                    onTabChange = { selectedTabIndex = it },
                     onOpenProduct = { product -> push(Route.ProductDetail(product)) },
                     onOpenCheckout = { catalogStore.dispatch(CatalogIntent.Checkout) },
                     onOpenAi = { push(Route.AiChat) },

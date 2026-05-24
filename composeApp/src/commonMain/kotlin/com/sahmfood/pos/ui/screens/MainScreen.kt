@@ -70,6 +70,15 @@ fun MainScreen(
     favoritesStore: FavoritesStore,
     historyStore: HistoryStore,
     settings: AppSettingsStore,
+    /**
+     * Index of the tab to show. Hoisted to the caller so MainScreen can be
+     * disposed and recreated by the navigation host (when the user opens a
+     * deeper route like ProductDetail) without resetting back to Home.
+     */
+    initialTabIndex: Int,
+    /** Called whenever the user changes tabs. The caller persists this so
+     *  the next time MainScreen mounts it lands on the right tab. */
+    onTabChange: (Int) -> Unit,
     onOpenProduct: (Product) -> Unit,
     onOpenCheckout: () -> Unit,
     onOpenAi: () -> Unit,
@@ -81,12 +90,18 @@ fun MainScreen(
     onOpenHelp: () -> Unit,
 ) {
     val catalogState by catalogStore.state.collectAsState()
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { SahmBottomTabs.size })
+    val pagerState = rememberPagerState(
+        initialPage = initialTabIndex.coerceIn(0, SahmBottomTabs.lastIndex),
+        pageCount = { SahmBottomTabs.size },
+    )
     val scope = rememberCoroutineScope()
-    var selectedTabKey by remember { mutableStateOf(SahmBottomTabs.first().key) }
+    var selectedTabKey by remember(initialTabIndex) {
+        mutableStateOf(SahmBottomTabs[initialTabIndex.coerceIn(0, SahmBottomTabs.lastIndex)].key)
+    }
 
     LaunchedEffect(pagerState.currentPage) {
         selectedTabKey = SahmBottomTabs[pagerState.currentPage].key
+        onTabChange(pagerState.currentPage)
     }
 
     Box(modifier = Modifier.fillMaxSize().background(Neutral5)) {
