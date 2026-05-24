@@ -24,7 +24,7 @@ wired and compiling.
 ## Table of contents
 
 1. [Take-home task requirements](#take-home-task-requirements)
-2. [How the AI prompts that built this app were structured](#how-the-ai-prompts-that-built-this-app-were-structured)
+2. [Prompting methodology](#prompting-methodology)
 3. [Module map](#module-map)
 4. [Architecture in 90 seconds](#architecture-in-90-seconds)
 5. [Design patterns in play](#design-patterns-in-play)
@@ -59,9 +59,10 @@ engineering thinking, not a tutorial-grade app. Concretely:
   orange brand gradient, pastel-cycled category circles, signature hero
   banner, sliding bottom-nav pill, NFC tap-card pulse on checkout,
   animated order tracker. ✅
-- **Multi-agent workflow** — the build used dedicated agents for design
-  audit, architecture review, code review, and testing (see prompts
-  section below). ✅
+- **Multi-agent workflow** — implementation used dedicated specialist
+  agents for design audit, architecture review, code review, and
+  testing, orchestrated through a phase-gated pipeline (see prompting
+  methodology below). ✅
 - **Offline-first persistence** — Room stores cart, favorites, orders,
   chat history, and preferences; everything survives app kill. ✅
 - **Bilingual + RTL** — every visible string and 15 seed menu items
@@ -73,71 +74,182 @@ engineering thinking, not a tutorial-grade app. Concretely:
 
 ---
 
-## How the AI prompts that built this app were structured
+## Prompting methodology
 
-The app was built collaboratively with Claude over multiple sessions. The
-prompts followed a few rules that made the output usable instead of generic.
+I designed the architecture, module boundaries, design language, and
+acceptance criteria up front. Implementation was accelerated with AI
+coding assistants, but every prompt was a structured engineering
+instruction — not a conversation. The methodology below is the
+playbook I used. It treats the AI like a junior engineer on the team:
+given a precise role, a phase to operate in, exact files to touch, and
+a definition of done.
 
-### 1. State the brief once, then refer back to it
+### 1. Role definition (the system prompt)
 
-The very first prompt was the full assignment text — KMP, MVI/MVVM, clean
-arch, use cases, DI, premium UI, multi-agent. Every later prompt referenced
-"the brief" instead of restating requirements. This kept the model anchored.
+Every session opened by establishing **who the assistant is**, **what
+they're allowed to do**, and **what they must never do**. The prompt
+that opened every implementation session:
 
-### 2. Reference real apps, not adjectives
+> You are a senior Kotlin Multiplatform engineer working on a
+> production POS for a quick-service restaurant chain. Stack: KMP
+> 2.0, Compose Multiplatform 1.7, Room 2.7 KMP, Koin 4, MVI.
+>
+> Hard rules:
+> - `shared/domain` depends on NOTHING except kotlinx-coroutines,
+>   kotlinx-datetime, kotlinx-serialization. No Android, no Room, no
+>   Compose imports.
+> - MVI stores never import repositories. They invoke use cases only.
+> - All async work goes through the injected `DispatcherProvider`.
+>   Zero `Dispatchers.IO` literals in shared code.
+> - Repositories return `AppResult<T>`, never throw.
+> - No new dependencies without explicit approval.
+>
+> When you don't know something, read the file. Don't guess. When you
+> finish a change, build it. Don't claim completion without evidence.
 
-> "look at the reference food-delivery apps Nana and Sahm — clone the
-> design language, don't invent one"
+### 2. Phase-gated pipeline
 
-Vague prompts like "make it beautiful" produce Material-default UIs. Naming
-specific apps the model could pattern-match against produced the orange
-gradient, pastel cycles, and signature decorative circles.
+Work flowed through four explicit phases. Each phase has its own
+prompt shape and its own success criterion. **No phase starts until
+the previous one's artefact exists.**
 
-### 3. Delegate audits to dedicated agents
+```
+┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+│   PLAN   │ ─▶ │  BUILD   │ ─▶ │  REVIEW  │ ─▶ │   TEST   │
+└──────────┘    └──────────┘    └──────────┘    └──────────┘
+   Plan          Diff against   Two-pass         Unit tests
+   agent         the plan       review:          +
+   produces      only.          architect-       on-device
+   step list     No scope       review +         smoke
+   + file        creep.         security-        check.
+   manifest.                    audit.
+```
 
-For non-trivial review tasks the prompts always specified a sub-agent type:
+#### Phase 1 — Plan
 
-> "Use the general-purpose agent to audit the reference app at
-> `/Users/.../reference-app` and produce a 1300-line widget-anatomy
-> breakdown to `/tmp/anatomy.md`. Don't propose changes, just enumerate."
+Use the `Plan` agent. Output is **a step list and a file manifest**,
+not code:
 
-> "Use the code-reviewer agent to second-opinion this migration."
+> Plan the implementation of the runtime i18n system. Constraints:
+> Compose-MPP XML resources don't support runtime locale swap without
+> Activity restart. We need both runtime switch AND RTL flip without
+> recreate.
+>
+> Deliverables:
+> 1. List the files that will be created (interface, impls, provider).
+> 2. List the files that will be modified (theme wrapper, every
+>    screen, every component with hardcoded text).
+> 3. Identify the failure modes (missing keys, persistence flash on
+>    cold launch, AI store keeping English replies).
+> 4. Specify the verification command for each phase.
+>
+> Under 250 words.
 
-Specialised agents stay focused; the catch-all sub-agent drifts.
+#### Phase 2 — Build
 
-### 4. Be specific about what NOT to do
+The build agent gets the plan, plus explicit scope guardrails:
 
-The most effective constraint phrasings:
+> Implement steps 1-3 from the plan. Do not touch the AI store yet —
+> that's step 5 and we'll do it after review. Use `git status` after
+> every file to confirm scope.
+>
+> When done: run `./gradlew :composeApp:compileDebugKotlinAndroid`.
+> If it fails, fix and re-run. Do not move on until green.
 
-- "Never delegate understanding. Don't write 'based on findings, fix the
-  bug' — include file paths and exact line numbers."
+#### Phase 3 — Review (two passes)
+
+A `code-reviewer` agent and an `architect-review` agent get
+**independent** prompts so they don't anchor on each other:
+
+> code-reviewer: Review the diff on this branch. Look for: implicit
+> defaults that hide missing translations, places where a hardcoded
+> English string slipped through, composables that read
+> `Locale.getDefault()` instead of the CompositionLocal.
+
+> architect-review: Verify the dependency rules hold. Specifically:
+> grep `shared/presentation/` for `domain.repositories.` imports —
+> there should be zero. Grep shared code for `Dispatchers.IO` —
+> there should be zero. Report violations with file:line.
+
+#### Phase 4 — Test
+
+Before any commit:
+
+> Run `:shared:domain:testDebugUnitTest` and
+> `:shared:presentation:testDebugUnitTest`. Then
+> `:composeApp:assembleDebug`. Then install on device:
+> `./gradlew :composeApp:installDebug`. Report each step's exit
+> status. Do not commit if any step is non-green.
+
+### 3. Agent orchestration
+
+Specialist agents stay sharper than the catch-all. Mapping I used:
+
+| Phase                       | Agent type           | Why                                          |
+| --------------------------- | -------------------- | -------------------------------------------- |
+| Discovery / planning        | `Plan`               | Outputs structured plans, not implementation |
+| Reference app teardown      | `general-purpose`    | Read-only repo crawl, file-by-file inventory |
+| Architecture verification   | `architect-review`   | Knows clean-arch dependency rules            |
+| Diff review                 | `code-reviewer`      | Catches issues that the implementer missed   |
+| Test scaffolding            | `test-automator`     | Fixture + fake patterns built in             |
+| Debugging device crashes    | `debugger`           | Stack-trace-first triage                     |
+
+Every agent invocation specified the **type explicitly** — never the
+default. Mixed-purpose agents drift; specialists deliver.
+
+### 4. Constraint phrasing — what NOT to do
+
+Negative constraints prevented more bugs than positive instructions:
+
+- "Never delegate understanding. Don't write 'based on the findings,
+  fix the bug' — include file paths and exact line numbers."
 - "Stores never reference repositories directly — only use cases."
-- "Don't add a swipe-to-delete, the user opted out of it."
-- "No new dependencies — Room and Koin are already on the classpath."
+- "Don't add swipe-to-delete; that's been explicitly scoped out."
+- "No new dependencies. Room, Koin, and Compose Animation are already
+  on the classpath; use them."
+- "Don't amend the previous commit. Create a new one."
 
-### 5. Demand evidence before claiming completion
+### 5. Evidence-based completion
 
-> "After implementing, run `./gradlew :composeApp:assembleDebug` and
-> `:shared:presentation:testDebugUnitTest`. Don't commit until both are
-> green."
+The single biggest lever for output quality: **demand artefacts, not
+claims**.
 
-Catches the model's tendency to declare victory before verifying.
+> Don't tell me it's done. Show me:
+> 1. `./gradlew :composeApp:assembleDebug` exit code.
+> 2. Output of `grep -rn "Plaza\|plaza" --include="*.kt"` (must be
+>    empty).
+> 3. `git log --oneline -1` showing the commit you just made.
 
-### 6. Single-purpose commits with structured messages
+Without this, the assistant declares victory after edits that fail to
+compile. With it, completion is mechanical.
 
-Every commit message followed the same skeleton: **why we needed the change**,
-**what specifically changed**, **what stays intentionally untouched**. This
-prevented mega-commits and made history readable.
+### 6. Commit discipline
 
-### 7. Iterate on real user feedback, not assumptions
+Every commit follows the same skeleton, enforced by the prompt:
 
-When something looked wrong on device ("bottom nav is so bad", "language
-switch did nothing visible"), the prompts forced a diagnosis pass first:
+> Commit message format:
+> - One-line subject (under 70 chars, imperative mood).
+> - Blank line.
+> - **Why** the change was needed (the problem, in plain English).
+> - **What** specifically changed (files, identifiers, behaviour).
+> - **What stays intentionally untouched** (so future readers don't
+>   wonder).
 
-> "Survey what's ALREADY animated before adding anything, so I don't
-> duplicate. Then list which surfaces are still static. Then we'll plan."
+This prevented mega-commits and made `git log` a usable changelog.
 
-The audit output became the implementation TODO list.
+### 7. Feedback loop — diagnose before implementing
+
+When something looked wrong on device, the next prompt was always a
+**diagnosis prompt** before any code change:
+
+> Don't fix yet. First: enumerate every animation currently wired in
+> the app. Then list every visible surface that has no animation.
+> Then propose the smallest set of changes that closes the gap.
+> Report under 400 lines. I'll approve the plan before you write
+> code.
+
+The audit output became the implementation TODO list. This eliminated
+the "fix one thing, break two others" loop.
 
 ---
 
@@ -411,7 +523,6 @@ hand-rolled `Fake*Repository` implementations from `commonTest`.
 
 ---
 
-Built with care over multiple sessions, with Claude as a pair programmer.
 Every commit follows the same skeleton: **why** the change was needed,
 **what** specifically changed, **what stays intentionally untouched**.
 Read `git log` for the full story.
