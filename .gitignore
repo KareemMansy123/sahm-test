@@ -11,3 +11,7 @@ xcuserdata/
 DerivedData/
 *.xcworkspace/xcuserdata/
 .DS_Store
+
+# Local-only — personal notes that should never reach the public repo
+docs/VIDEO_SCRIPT.md
+
