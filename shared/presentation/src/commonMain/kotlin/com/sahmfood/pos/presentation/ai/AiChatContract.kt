@@ -23,9 +23,11 @@ data class AiChatState(
 )
 
 val defaultQuickActions = listOf(
+    QuickAction("recommend"),
+    QuickAction("search_burger"),
     QuickAction("best_sellers"),
-    QuickAction("pending_orders"),
     QuickAction("todays_revenue"),
+    QuickAction("pending_orders"),
     QuickAction("slowest_item"),
 )
 

@@ -144,10 +144,14 @@ interface SahmStrings {
     val aiQuickPending: String
     val aiQuickRevenue: String
     val aiQuickSlowest: String
+    val aiQuickRecommend: String
+    val aiQuickSearchBurger: String
     val aiQuickBestSellersPrompt: String
     val aiQuickPendingPrompt: String
     val aiQuickRevenuePrompt: String
     val aiQuickSlowestPrompt: String
+    val aiQuickRecommendPrompt: String
+    val aiQuickSearchBurgerPrompt: String
 
     // Profile
     val profileGreeting: String

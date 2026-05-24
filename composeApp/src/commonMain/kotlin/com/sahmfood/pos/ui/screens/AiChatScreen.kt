@@ -232,6 +232,8 @@ private fun resolveQuickAction(
     key: String,
     strings: com.sahmfood.pos.ui.strings.SahmStrings,
 ): Pair<String, String> = when (key) {
+    "recommend" -> strings.aiQuickRecommend to strings.aiQuickRecommendPrompt
+    "search_burger" -> strings.aiQuickSearchBurger to strings.aiQuickSearchBurgerPrompt
     "best_sellers" -> strings.aiQuickBestSellers to strings.aiQuickBestSellersPrompt
     "pending_orders" -> strings.aiQuickPending to strings.aiQuickPendingPrompt
     "todays_revenue" -> strings.aiQuickRevenue to strings.aiQuickRevenuePrompt

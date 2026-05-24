@@ -7,6 +7,7 @@ import com.sahmfood.pos.domain.usecases.CheckoutOrder
 import com.sahmfood.pos.domain.usecases.ClearCart
 import com.sahmfood.pos.domain.usecases.ClearChatHistory
 import com.sahmfood.pos.domain.usecases.CountPendingSyncOrders
+import com.sahmfood.pos.domain.usecases.FindProductByName
 import com.sahmfood.pos.domain.usecases.GetFavoriteProducts
 import com.sahmfood.pos.domain.usecases.GetOrderDetails
 import com.sahmfood.pos.domain.usecases.GetOrderHistory
@@ -18,7 +19,9 @@ import com.sahmfood.pos.domain.usecases.ObserveFavoriteIds
 import com.sahmfood.pos.domain.usecases.ObservePreferences
 import com.sahmfood.pos.domain.usecases.PrintReceipt
 import com.sahmfood.pos.domain.usecases.RankItemsByVolume
+import com.sahmfood.pos.domain.usecases.RecommendProducts
 import com.sahmfood.pos.domain.usecases.RemoveCartItem
+import com.sahmfood.pos.domain.usecases.SearchCatalog
 import com.sahmfood.pos.domain.usecases.RemoveItemFromCart
 import com.sahmfood.pos.domain.usecases.SaveChatMessage
 import com.sahmfood.pos.domain.usecases.SeedCatalogIfNeeded
@@ -60,10 +63,13 @@ val domainModule = module {
     factory { ToggleFavorite(get()) }
     factory { GetFavoriteProducts(get(), get()) }
 
-    // AI insights
+    // AI insights + catalog actions
     factory { GetTodayRevenueSummary(get()) }
     factory { CountPendingSyncOrders(get()) }
     factory { RankItemsByVolume(get()) }
+    factory { SearchCatalog(get()) }
+    factory { RecommendProducts(get(), get()) }
+    factory { FindProductByName(get()) }
 
     // Chat persistence
     factory { ObserveChatMessages(get()) }

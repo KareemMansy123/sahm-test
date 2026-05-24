@@ -130,10 +130,14 @@ object EnglishStrings : SahmStrings {
     override val aiQuickPending = "Pending orders"
     override val aiQuickRevenue = "Today's revenue"
     override val aiQuickSlowest = "Slowest item"
+    override val aiQuickRecommend = "Recommend a dish"
+    override val aiQuickSearchBurger = "Find me a burger"
     override val aiQuickBestSellersPrompt = "What are the best-selling items today?"
     override val aiQuickPendingPrompt = "How many orders are still being prepared?"
     override val aiQuickRevenuePrompt = "What is today's total revenue?"
     override val aiQuickSlowestPrompt = "Which item sold the least today?"
+    override val aiQuickRecommendPrompt = "What should I order right now?"
+    override val aiQuickSearchBurgerPrompt = "Find me a burger"
 
     // Profile
     override val profileGreeting = "Kareem · Counter 1"

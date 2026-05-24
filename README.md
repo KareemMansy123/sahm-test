@@ -30,9 +30,10 @@ Compose UI tree.
 5. [Design patterns in play](#design-patterns-in-play)
 6. [Folder structure](#folder-structure)
 7. [Feature surface](#feature-surface)
-8. [Running the project](#running-the-project)
-9. [Testing](#testing)
-10. [What I'd do with another week](#what-id-do-with-another-week)
+8. [**AI Assistant**](#ai-assistant)
+9. [Running the project](#running-the-project)
+10. [Testing](#testing)
+11. [What I'd do with another week](#what-id-do-with-another-week)
 
 ---
 
@@ -439,16 +440,128 @@ What you can actually do in the app:
   cross-fades.
 - **Order history** — animated revenue/order stat cards, animated filter
   chips (all / cash / card / synced / pending), animated list rows.
-- **AI assistant** — 4 quick-action chips (best sellers, pending orders,
-  today's revenue, slowest item) backed by `RankItemsByVolume`,
-  `GetTodayRevenueSummary`, `CountPendingSyncOrders` use cases — no LLM
-  call, pure local data. Chat history is persisted.
+- **AI assistant** — recommends dishes, searches the menu, describes any
+  product, and can add items to the cart directly from chat. Also covers
+  sales analytics (today's revenue, best/slowest sellers, pending sync).
+  See the dedicated [AI Assistant](#ai-assistant) section below.
 - **Settings stubs** — Switch register, Printer settings, Preferences,
   Help & support — all UI-only mock data, intentionally not wired to
   hardware.
 - **Theme + Language** — Light / Dark / System theme; English / Egyptian
   Arabic with full RTL flip and bilingual product names. Both persist in
   Room.
+
+---
+
+## AI Assistant
+
+The AI assistant is a **flagship feature** — not a chat-with-an-LLM
+gimmick. It's an in-app concierge for the cashier that reads the live
+catalog and order history, can recommend dishes, search the menu,
+describe any product, and **place items in the cart directly from
+chat**.
+
+### Why local, not an LLM
+
+A POS in a restaurant cannot afford to be down because the network is
+down, and cannot afford the per-request cost or latency of a cloud
+LLM during a lunch rush. So this assistant runs entirely on-device,
+deterministically, in **zero network calls**. The trade-off is that
+it understands a controlled vocabulary of intents rather than free-
+form natural language — which is exactly right for the job.
+
+A future swap-in to a real LLM is one use case away: replace the
+`generateReply` function in `AiChatStore` with a call to an
+`LlmGateway` repository and the rest of the architecture is unchanged.
+
+### What it can do today
+
+| Capability | Example user message | Backing use case |
+| --- | --- | --- |
+| **Recommend a dish** | *"what should I order?"* / *"best burger?"* | `RecommendProducts` |
+| **Search the menu** | *"do you have pizza?"* / *"find me cold drinks"* | `SearchCatalog` |
+| **Describe a product** | *"tell me about double stack"* / *"what is margherita?"* | `FindProductByName` |
+| **Add to cart from chat** | *"add a double stack"* / *"order me a margherita"* | `FindProductByName` + `AddProductToCart` |
+| **Today's revenue** | *"what's today's revenue?"* / *"how much did we earn?"* | `GetTodayRevenueSummary` |
+| **Order count** | *"how many orders today?"* | `GetTodayRevenueSummary` |
+| **Best sellers** | *"what's selling well?"* / *"top items today?"* | `RankItemsByVolume(asc=false)` |
+| **Slowest movers** | *"slowest item?"* / *"what's not selling?"* | `RankItemsByVolume(asc=true)` |
+| **Sync status** | *"any pending orders?"* / *"is everything synced?"* | `CountPendingSyncOrders` |
+| **Help / capabilities** | *"what can you do?"* | static help text |
+
+Six **quick-action chips** appear above the input on first open to
+make the most useful intents one-tap:
+
+```
+[ Recommend a dish ] [ Find me a burger ]
+[ Best sellers today ] [ Today's revenue ]
+[ Pending orders ] [ Slowest item ]
+```
+
+### How it works under the hood
+
+**Intent classification** is a small rules engine in `AiChatStore`.
+It tokenises the message, then matches against verb + noun patterns
+to pick one of 11 `QueryIntent` cases. Examples:
+
+```kotlin
+any("add", "order") && tokens.size > 1
+    -> QueryIntent.AddToCart(extractAfter(q, listOf("add", "order")))
+
+any("recommend", "suggest") ||
+    (any("what", "which") && any("should", "best"))
+    -> QueryIntent.Recommend(detectCategory(tokens))
+```
+
+The intent carries the **extracted item / category name** as a
+payload, so the handler can pass it straight to the use case
+without re-parsing.
+
+**Recommendation strategy** (no model needed, fully deterministic):
+
+1. Try sales-data ranking — top items by historical volume from the
+   real order history.
+2. Fall back to highest-priced available items as "premium picks"
+   when there's no sales data yet (fresh device).
+3. Optionally filter by category — *"best burger"* only ranks burgers.
+
+**Product search** is fuzzy multi-token matching with weighted
+scoring: name match = 5 points, category match = 3, description
+match = 1. Bilingual fields (`nameAr`, `categoryAr`) are scored too,
+so Arabic queries work the same way.
+
+**Add-to-cart** uses the same fuzzy search to resolve the free-text
+item, checks availability, then writes through `AddProductToCart`
+which persists to Room. The cart badge on the bottom-nav updates
+live across the rest of the app.
+
+### Architecture compliance
+
+The AI feature follows the same clean-arch rules as every other
+store in this codebase:
+
+- **Zero repository imports.** `AiChatStore` injects use cases:
+  `RecommendProducts`, `SearchCatalog`, `FindProductByName`,
+  `AddProductToCart`, `GetTodayRevenueSummary`, etc. Grep the file
+  for `domain.repositories.` — zero hits.
+- **All chat messages persisted via `SaveChatMessage`.** Reopening
+  the app restores the full conversation from Room.
+- **No `Dispatchers.IO` literals.** Async work routes through the
+  injected `DispatcherProvider`.
+- **Bilingual chip labels.** Quick actions store stable `key`s,
+  not English text. The UI resolves label + prompt from
+  `SahmStrings` at render time, so the chips flip language live
+  with the rest of the app.
+
+### Files
+
+| File | Role |
+| --- | --- |
+| `shared/domain/.../usecases/AiInsightUseCases.kt` | 6 use cases: revenue summary, pending count, item ranking, **search**, **recommend**, **find-by-name** |
+| `shared/presentation/.../ai/AiChatStore.kt` | MVI store, intent classifier, 11 handler functions |
+| `shared/presentation/.../ai/AiChatContract.kt` | `AiChatState`, `AiChatIntent`, `QuickAction` |
+| `composeApp/.../ui/screens/AiChatScreen.kt` | Compose UI — chip cascade, bubble list, typing indicator, send button |
+| `composeApp/.../ui/components/AiFloatingButton.kt` | Pulsing FAB that opens the assistant from any tab |
 
 ---
 

@@ -138,10 +138,14 @@ object ArabicStrings : SahmStrings {
     override val aiQuickPending = "الطلبات المعلّقة"
     override val aiQuickRevenue = "إيرادات اليوم"
     override val aiQuickSlowest = "الأقل مبيعاً"
+    override val aiQuickRecommend = "اقترح وجبة"
+    override val aiQuickSearchBurger = "ابحث عن برجر"
     override val aiQuickBestSellersPrompt = "ما هي الأصناف الأكثر مبيعاً اليوم؟"
     override val aiQuickPendingPrompt = "كم عدد الطلبات المعلّقة؟"
     override val aiQuickRevenuePrompt = "كم إجمالي إيرادات اليوم؟"
     override val aiQuickSlowestPrompt = "ما الصنف الأقل مبيعاً اليوم؟"
+    override val aiQuickRecommendPrompt = "ما الذي تنصحني به الآن؟"
+    override val aiQuickSearchBurgerPrompt = "ابحث عن برجر"
 
     // Profile
     override val profileGreeting = "كريم · كاونتر 1"

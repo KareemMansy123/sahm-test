@@ -42,6 +42,11 @@ val presentationModule = module {
             getTodayRevenueSummary = get(),
             countPendingSyncOrders = get(),
             rankItemsByVolume = get(),
+            searchCatalog = get(),
+            recommendProducts = get(),
+            findProductByName = get(),
+            addProductToCart = get(),
+            snapshotCart = get(),
             clock = get(),
             ids = get(),
         )
