@@ -2,7 +2,7 @@ package com.sahmfood.pos.data.db
 
 import androidx.room.RoomDatabase
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import kotlinx.coroutines.Dispatchers
+import com.sahmfood.pos.data.services.ioDispatcher
 
 /**
  * Single factory function used by Koin to build the [SahmDatabase].
@@ -19,7 +19,7 @@ import kotlinx.coroutines.Dispatchers
 fun provideSahmDatabase(factory: DatabaseFactory): SahmDatabase =
     factory.builder()
         .setDriver(BundledSQLiteDriver())
-        .setQueryCoroutineContext(Dispatchers.IO)
+        .setQueryCoroutineContext(ioDispatcher())
         .fallbackToDestructiveMigration(dropAllTables = true)
         .build()
 

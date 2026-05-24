@@ -11,7 +11,7 @@ import kotlinx.coroutines.Dispatchers
  */
 class DefaultDispatchers : DispatcherProvider {
     override val default: CoroutineDispatcher = Dispatchers.Default
-    override val io: CoroutineDispatcher = Dispatchers.IO
+    override val io: CoroutineDispatcher = ioDispatcher()
     override val main: CoroutineDispatcher = Dispatchers.Main
     override val unconfined: CoroutineDispatcher = Dispatchers.Unconfined
 }

@@ -5,8 +5,8 @@ Multiplatform take-home assignment to evaluate real engineering thinking — not
 just "make it work," but how the code is structured, tested, and presented.
 
 Shared business logic targets **Android, iOS, and JVM (for unit tests)**. UI is
-**Compose Multiplatform**, currently rendered on Android with the iOS target
-wired and compiling.
+**Compose Multiplatform**, running on both Android and iOS from a single
+Compose UI tree.
 
 | Layer            | Tech                                                                        |
 | ---------------- | --------------------------------------------------------------------------- |
@@ -467,11 +467,57 @@ What you can actually do in the app:
 adb shell monkey -p com.sahmfood.pos -c android.intent.category.LAUNCHER 1
 ```
 
-### iOS
+### iOS simulator
 
-Open `iosApp/iosApp.xcodeproj` in Xcode 15+ and run on a simulator. The
-shared logic builds via `:shared:data:assembleXCFramework` and the iOS
-UI lives in `iosApp/`.
+Requires **Xcode 15+** and an iOS 14.1+ simulator runtime.
+
+**Option A — Xcode (recommended for development):**
+
+```bash
+open iosApp/iosApp.xcodeproj
+```
+
+In Xcode, pick an iPhone simulator (e.g. iPhone 16) from the run-target
+dropdown and press ⌘R. The project's *Compile Kotlin Framework* build
+phase calls `./gradlew :composeApp:embedAndSignAppleFrameworkForXcode`
+automatically, so the Kotlin/Native framework is built before Xcode
+links the Swift host. First build takes a few minutes (Kotlin/Native
+caches a lot on first compile).
+
+**Option B — command line (one-shot install on the booted simulator):**
+
+```bash
+# 1. Boot a simulator (skip if one is already booted)
+xcrun simctl boot "iPhone 16"
+open -a Simulator
+
+# 2. Build the iOS app
+cd iosApp
+xcodebuild -project iosApp.xcodeproj \
+           -scheme iosApp \
+           -configuration Debug \
+           -sdk iphonesimulator \
+           -destination "platform=iOS Simulator,name=iPhone 16" \
+           build
+
+# 3. Install + launch on the booted simulator
+APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData/iosApp-* \
+             -name iosApp.app -path "*/Debug-iphonesimulator/*" | head -1)
+xcrun simctl install booted "$APP_PATH"
+xcrun simctl launch  booted com.sahmfood.pos
+```
+
+**How the iOS side is wired (so you know what to debug if something
+breaks):**
+
+| Piece                                              | Where                                                      |
+| -------------------------------------------------- | ---------------------------------------------------------- |
+| Swift entry point                                  | `iosApp/iosApp/iosApp.swift` — wraps a `ComposeUIViewController` |
+| Kotlin entry point                                 | `composeApp/src/iosMain/.../MainViewController.kt`         |
+| Room driver (BundledSQLite)                        | `shared/data/src/iosMain/.../DatabaseFactory.ios.kt`       |
+| `Dispatchers.IO` shim (Kotlin/Native has no `IO`)  | `shared/data/src/iosMain/.../IoDispatcher.ios.kt` returns `Dispatchers.Default` |
+| Xcode build phase that compiles Kotlin             | `iosApp/iosApp.xcodeproj` → target *iosApp* → *Compile Kotlin Framework* phase |
+| Required Info.plist key                            | `CADisableMinimumFrameDurationOnPhone=true` (Compose-MPP iOS hard-requires this) |
 
 ### local.properties
 
@@ -508,9 +554,10 @@ hand-rolled `Fake*Repository` implementations from `commonTest`.
 
 ## What I'd do with another week
 
-- **Real iOS rendering** — the iOS target compiles and the shared logic
-  runs, but I haven't hand-tuned the SwiftUI host or verified the
-  Compose Multiplatform iOS frame rate. Worth a few days.
+- **iOS polish pass** — the app installs and runs on the iOS
+  simulator with the full Compose UI tree, but I haven't tuned
+  scroll physics, hand-checked frame rate under load, or shipped
+  iOS-specific touches (haptic feedback, swipe-back gesture).
 - **Snapshot tests** for every UI component using Paparazzi-style
   rendering (or the new Roborazzi for Compose).
 - **Real sync worker** — `SyncWorker` and `StubRemoteApiService` are

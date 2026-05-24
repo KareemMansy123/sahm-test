@@ -6,9 +6,9 @@ import com.sahmfood.pos.domain.entities.SyncStatus
 import com.sahmfood.pos.domain.repositories.OrderRepository
 import com.sahmfood.pos.domain.repositories.SyncQueueRepository
 import com.sahmfood.pos.domain.sync.ConnectivityObserver
+import com.sahmfood.pos.data.services.ioDispatcher
 import com.sahmfood.pos.domain.sync.RemoteApiService
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
@@ -39,7 +39,7 @@ class SyncWorker(
     private val orderRepo: OrderRepository,
     private val remoteApi: RemoteApiService,
     private val connectivity: ConnectivityObserver,
-    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + ioDispatcher())
 ) {
     private val _state = MutableStateFlow<State>(State.Idle)
     val state: StateFlow<State> = _state.asStateFlow()
